@@ -1,7 +1,10 @@
 from dash import Dash, html, dcc, dash_table, Output, Input, State, callback
-from sklearn.linear_model import LinearRegression
-from sklearn.impute import KNNImputer
-from lightgbm import LGBMRegressor
+from imputation import (
+    impute_data,
+    create_mcar_data,
+    evaluate_imputation,
+    forcast_data,
+)
 import base64
 import io
 import pandas as pd
@@ -150,81 +153,6 @@ def update_output(content, names):
                     )
         print("Everything is processed...")
         return children
-
-
-def locf(df):
-    return df.ffill()
-
-
-def nocb(df):
-    return df.bfill()
-
-
-def linear_interpolation(df):
-    return df.interpolate(method="linear", limit_direction="both")
-
-
-def linear_regression(df):
-    df_imputed = df.copy()
-
-    for col in df.columns:
-        missing = df[col].isna()
-        not_missing = df[col].notna()
-
-        if missing.sum() == 0:
-            continue
-
-        X = df.drop(col, axis=1)
-        y = df[col]
-
-        X_train = X.loc[not_missing]
-        y_train = y.loc[not_missing]
-        X_pred = X.loc[missing]
-
-        model = LinearRegression()
-        model.fit(X_train, y_train)
-        y_pred = model.predict(X_pred)
-        df_imputed.loc[missing, col] = y_pred
-
-    return df_imputed
-
-
-def lightgbm(df):
-    df_imputed = df.copy()
-
-    for col in df.columns:
-        missing = df[col].isna()
-        not_missing = df[col].notna()
-
-        if missing.sum() == 0:
-            continue
-
-        X = df.drop(col, axis=1)
-        y = df[col]
-
-        X_train = X.loc[not_missing]
-        y_train = y.loc[not_missing]
-        X_pred = X.loc[missing]
-
-        model = LGBMRegressor(force_col_wise=True)
-        model.fit(X_train, y_train)
-        y_pred = model.predict(X_pred)
-        df_imputed.loc[missing, col] = y_pred
-
-    return df_imputed
-
-
-def impute_data(df, method=None):
-    if method == "LOCF":
-        return locf(df)
-    elif method == "NOCB":
-        return nocb(df)
-    elif method == "Linear Interpolation":
-        return linear_interpolation(df)
-    elif method == "Linear Regression":
-        return linear_regression(df)
-    elif method == "LightGBM":
-        return lightgbm(df)
 
 
 if __name__ == "__main__":
