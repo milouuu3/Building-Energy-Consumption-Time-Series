@@ -17,7 +17,7 @@ def split_data(X, y, train_size=0.8):
     return X_train, X_test, y_train, y_test
 
 
-def forecast_data(df, col, model_type, n_lags=7, train_size=0.8):
+def forecast_data(df, col, n_lags=7, train_size=0.8):
     df_lags = create_lags(df, col, n_lags=n_lags)
 
     X = df_lags.drop(columns=[col])
@@ -25,10 +25,7 @@ def forecast_data(df, col, model_type, n_lags=7, train_size=0.8):
 
     X_train, X_test, y_train, y_test = split_data(X, y, train_size=train_size)
 
-    if model_type == "Linear Regression":
-        model = LinearRegression()
-    elif model_type == "LightGBM":
-        model = LGBMRegressor(force_col_wise=True)
+    model = LGBMRegressor(force_col_wise=True)
 
     model.fit(X_train, y_train)
     y_pred = model.predict(X_test)
@@ -39,9 +36,24 @@ def forecast_data(df, col, model_type, n_lags=7, train_size=0.8):
 def plot_forecast(y_test, y_pred):
     fig = go.Figure()
     fig.add_trace(
-        go.Scatter(x=y_test.index, y=y_test.values, name="y_test", line=dict(color="red"))
+        go.Scatter(
+            x=y_test.index,
+            y=y_test.values,
+            name="y_test",
+            line=dict(color="red"),
+            # mode="lines",
+        )
     )
     fig.add_trace(
-        go.Scatter(x=y_pred.index, y=y_pred.values, name="y_pred", line=dict(color="blue"))
+        go.Scatter(
+            x=y_test.index,
+            y=y_pred,
+            name="y_pred",
+            line=dict(color="blue"),
+            # mode="lines",
+        )
     )
-    fig.update_layout(title="Forecast vs Actual", showLegend=True)
+    fig.update_layout(
+        title="Forecast vs Actual", showlegend=True, xaxis_title="Timestamp", yaxis_title="Value"
+    )
+    return fig

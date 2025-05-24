@@ -1,5 +1,6 @@
 from dash import Dash, html, dcc, dash_table, Output, Input, State, callback
 from imputation import create_mcar_data, evaluate_imputation, impute_data
+from forecasting import forecast_data, plot_forecast
 import base64
 import io
 import pandas as pd
@@ -52,14 +53,6 @@ app.layout = html.Div(
                         children=[
                             dcc.Dropdown(
                                 id="dropdown-building", placeholder="Select Building Column"
-                            ),
-                            dcc.Dropdown(
-                                options=[
-                                    {"label": "Linear Regression", "value": "Linear Regression"},
-                                    {"label": "LightGBM", "value": "LightGBM"},
-                                ],
-                                value="Linear Regression",
-                                id="select-model-forecasting",
                             ),
                             dcc.Slider(1, 30, 1, value=7, id="slider-lags"),
                             html.Br(),
@@ -156,7 +149,7 @@ def update_output(content, names):
 )
 def run_imputation(n_clicks, data):
     if n_clicks and data:
-        df = pd.read_json(data, orient="split")
+        df = pd.read_json(io.StringIO(data), orient="split")
 
         df_masked, samples = create_mcar_data(df.copy())
 
@@ -207,22 +200,25 @@ def run_imputation(n_clicks, data):
 
 @callback(Output("dropdown-building", "options"), Input("store-imputed-dataset", "data"))
 def update_options(imputed_data):
-    df_imputed = pd.read_json(imputed_data, orient="split")
+    if imputed_data is None:
+        return []
+    df_imputed = pd.read_json(io.StringIO(imputed_data), orient="split")
     return [{"label": i, "value": i} for i in df_imputed.columns]
 
 
-callback(
+@callback(
     Output("plot-forecasting", "figure"),
     Input("button-run-forecast", "n_clicks"),
     State("store-imputed-dataset", "data"),
     State("dropdown-building", "value"),
-    State("select-model-forecasting", "value"),
     State("slider-lags", "value"),
 )
-
-
-def run_forecast(n_clicks, imputed_data, target, model, n_lags):
-    pass
+def run_forecast(n_clicks, imputed_data, col, n_lags):
+    if n_clicks and imputed_data:
+        df_imputed = pd.read_json(io.StringIO(imputed_data), orient="split")
+        y_test, y_pred = forecast_data(df_imputed, col, n_lags)
+        fig = plot_forecast(y_test, y_pred)
+        return fig
 
 
 if __name__ == "__main__":
