@@ -1,5 +1,5 @@
 from dash import Dash, html, dcc, dash_table, Output, Input, State, callback
-from imputation import impute_data, create_mcar_data, evaluate_imputation
+from imputation import create_mcar_data, evaluate_imputation, impute_data
 import base64
 import io
 import pandas as pd
@@ -29,6 +29,7 @@ app.layout = html.Div(
         ),
         # Store dataset
         dcc.Store(id="store-dataset"),
+        dcc.Store(id="store-imputed-dataset"),
         html.Div(id="output-data-upload"),
         # Create extra tabs for differen viewing levels
         dcc.Loading(
@@ -43,9 +44,6 @@ app.layout = html.Div(
                         children=[
                             html.Button("Run", id="button-run-dataset", n_clicks=0),
                             html.Div(id="dataset-results"),
-                            html.Br(),
-                            html.Button("Download Imputed Dataset", id="button-download-imputed"),
-                            dcc.Download(id="download-imputed-dataset"),
                         ],
                     ),
                     # Building level
@@ -143,7 +141,7 @@ def update_output(content, names):
         print("Dataset is uploaded...")
         df = parse_contents(content, names)
         if isinstance(df, pd.DataFrame):
-            data = df.to_json(orient="split", date_format="iso")
+            data = df.to_json(orient="split")
             return data, html.Div(["Dataset is uploaded"])
         else:
             return None, html.Div(["There was an error processing this dataset"])
@@ -152,6 +150,7 @@ def update_output(content, names):
 
 @callback(
     Output("dataset-results", "children"),
+    Output("store-imputed-dataset", "data"),
     Input("button-run-dataset", "n_clicks"),
     State("store-dataset", "data"),
 )
@@ -183,20 +182,47 @@ def run_imputation(n_clicks, data):
                 results.append(
                     html.Div(
                         [
-                            html.H4(f"Error metrics for {method}"),
-                            html.P(f"Error: {e}"),
+                            html.H3(f"Error metrics for {method}"),
+                            html.P(
+                                f"Error: {e}",
+                                style={
+                                    "color": "white",
+                                    "padding": "20px",
+                                    "marginBottom": "15px",
+                                    "backgroundColor": "#f44336",
+                                },
+                            ),
                         ],
-                        style={
-                            "color": "white",
-                            "padding": "20px",
-                            "marginBottom": "15px",
-                            "backgroundColor": "#f44336",
-                        },
                     )
                 )
-        return results
+        # Impute the original data using the chosen method without mask
+        method_choice = "LightGBM"
+        print(f"Method {method_choice} is chosen as final method")
+        df_imputed = impute_data(df.copy(), method_choice)
+        imputed_data = df_imputed.to_json(orient="split")
+        return results, imputed_data
 
-    return html.Div(["Click run to start evaluation"])
+    return html.Div(["Click run to start evaluation"]), None
+
+
+@callback(Output("dropdown-building", "options"), Input("store-imputed-dataset", "data"))
+def update_options(imputed_data):
+    df_imputed = pd.read_json(imputed_data, orient="split")
+    return [{"label": i, "value": i} for i in df_imputed.columns]
+
+
+callback(
+    Output("plot-forecasting", "figure"),
+    Input("button-run-forecast", "n_clicks"),
+    State("store-imputed-dataset", "data"),
+    State("dropdown-building", "value"),
+    State("select-model-forecasting", "value"),
+    State("slider-lags", "value"),
+)
+
+
+def run_forecast(n_clicks, imputed_data, target, model, n_lags):
+    pass
 
 
 if __name__ == "__main__":
