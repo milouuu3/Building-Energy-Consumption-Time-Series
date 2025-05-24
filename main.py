@@ -1,10 +1,5 @@
 from dash import Dash, html, dcc, dash_table, Output, Input, State, callback
-from imputation import (
-    impute_data,
-    create_mcar_data,
-    evaluate_imputation,
-    forcast_data,
-)
+from imputation import impute_data, create_mcar_data, evaluate_imputation
 import base64
 import io
 import pandas as pd
@@ -13,8 +8,9 @@ app = Dash()
 
 app.layout = html.Div(
     [
+        # Title
         html.H1("Building Energy Consumption Time Series"),
-        # Dataset
+        # Dataset upload
         html.H2(children="Upload Building Energy Consumption Dataset"),
         dcc.Upload(
             id="upload-data",
@@ -29,34 +25,82 @@ app.layout = html.Div(
                 "textAlign": "center",
                 "margin": "10px",
             },
-            multiple=True,
+            multiple=False,
         ),
+        # Store dataset
+        dcc.Store(id="store-dataset"),
+        # Create extra tabs for differen viewing levels
         dcc.Loading(
             id="data-upload-loading",
             type="circle",
-            children=html.Div(id="output-data-upload"),
+            children=dcc.Tabs(
+                id="tabs",
+                children=[
+                    # Dataset level
+                    dcc.Tab(
+                        label="dataset-evaluation",
+                        children=[
+                            dcc.Checklist(
+                                options=[{"label": "Add MCAR mask", "value": "mcar-mask-on"}],
+                                value=[],
+                                id="checklist-add-mask",
+                            ),
+                            dcc.Slider(0, 50, 5, value=20, id="slider-mcar"),
+                            html.Br(),
+                            html.Button("Run", id="button-run-dataset", n_clicks=0),
+                            html.Div(id="dataset-results"),
+                            html.Br(),
+                            html.Button("Download Imputed Dataset", id="button-download-imputed"),
+                            dcc.Download(id="download-imputed-dataset"),
+                        ],
+                    ),
+                    # Building level
+                    dcc.Tab(
+                        label="building-forecasting",
+                        children=[
+                            dcc.Dropdown(
+                                id="dropdown-building", placeholder="Select Building Column"
+                            ),
+                            dcc.Dropdown(
+                                options=[
+                                    {"label": "Linear Regression", "value": "Linear Regression"},
+                                    {"label": "LightGBM", "value": "LightGBM"},
+                                ],
+                                value="Linear Regression",
+                                id="select-model-forecasting",
+                            ),
+                            dcc.Slider(1, 30, 1, value=7, id="slider-lags"),
+                            html.Br(),
+                            html.Button("Run forecast", id="button-run-forecast"),
+                            dcc.Graph(id="plot-forecasting"),
+                        ],
+                    ),
+                ],
+            ),
         ),
+        html.Div(id="output-data-upload"),
     ],
     style={"padding": "20px"},
 )
 
 
-def preprocess_data(df):
-    # Find and set the timestamp column as index
+def preprocess_data(df: pd.DataFrame):
+    # Find and set the timestamp column as index if possible
     for col in df.columns:
         if df[col].dtype == "object":
             try:
                 df[col] = pd.to_datetime(df[col])
                 df = df.set_index(col)
                 break
-            except Exception:
-                pass
-    # Filter to only numeric columns
+            except Exception as e:
+                print(e)
+    # Filter only numeric columns
     df = df.select_dtypes(include="number")
     return df.sort_index()
 
 
 def parse_contents(contents, filename):
+    # Check if uploaded file is indeed .csv
     if not filename.endswith(".csv"):
         return html.Div(["Only CSV files are supported."]), None
 
@@ -82,7 +126,7 @@ methods = [
 ]
 
 
-def create_datatable(df, method):
+def create_datatable(df: pd.DataFrame, method):
     df = df.head().reset_index()
     return html.Div(
         [
@@ -96,6 +140,7 @@ def create_datatable(df, method):
 
 
 @callback(
+    Output("store-dataset", "data"),
     Output("output-data-upload", "children"),
     Input("upload-data", "contents"),
     State("upload-data", "filename"),
@@ -103,44 +148,42 @@ def create_datatable(df, method):
 def update_output(content, names):
     if content is not None:
         print("Dataset is uploaded...")
-        children = []
-        for c, n in zip(content, names):
-            print(f"Processing dataset: {n}")
-            df = parse_contents(c, n)
+        df = parse_contents(content, names)
+        if isinstance(df, pd.DataFrame):
+            data = df.to_json(orient="split", date_format="iso")
+            return data, html.Div(["Dataset is uploaded"])
+        else:
+            return None, html.Div(["There was an error processing this dataset"])
+    return None, html.Div(["Only csv files are allowed"])
 
-            if df is None:
-                print("Read error in file...")
-                continue
 
-            for method in methods:
-                print(f"Running imputation: {method}")
-                try:
-                    df_imputed = impute_data(df.copy(), method)
-                    missing = df_imputed.isna().sum().sum()
-                    if missing > 0:
-                        children.append(
-                            html.Div(
-                                [
-                                    html.P(
-                                        f"Warning: still contains {missing} missing values. Forecasting accuracy might be affected.",
-                                        style={
-                                            "color": "white",
-                                            "padding": "20px",
-                                            "marginBottom": "15px",
-                                            "backgroundColor": "#f44336",
-                                        },
-                                    ),
-                                ]
-                            )
-                        )
-                    children.append(create_datatable(df_imputed, method))
-                except Exception as e:
-                    children.append(
+@callback(
+    Output("dataset-results", "children"),
+    Input("button-run-dataset", "n_clicks"),
+    State("store-dataset", "data"),
+    State("checklist-add-mask", "value"),
+    State("slider-mcar", "value"),
+)
+def run_imputation(n_clicks, data, mask_checklist, mcar_value):
+    if n_clicks and data:
+        df = pd.read_json(data, orient="split")
+        df_masked = create_mcar_data(df.copy())
+
+        results = []
+        for method in methods:
+            print(f"Imputing with {method}")
+
+            try:
+                df_imputed = impute_data(df_masked.copy(), method)
+                df_head = df_imputed.head().reset_index()
+
+                missing = df_imputed.isna().sum().sum()
+                if missing > 0:
+                    results.append(
                         html.Div(
                             [
-                                html.H3(f"Imputed with {method}"),
                                 html.P(
-                                    f"Error: {e}",
+                                    f"Warning: still contains {missing} missing values. Forecasting accuracy might be affected.",
                                     style={
                                         "color": "white",
                                         "padding": "20px",
@@ -151,8 +194,23 @@ def update_output(content, names):
                             ]
                         )
                     )
-        print("Everything is processed...")
-        return children
+
+                results.append(create_datatable(df_imputed, method))
+            except Exception as e:
+                results.append(
+                    html.Div(
+                        html.P(f"Error: {e}"),
+                        style={
+                            "color": "white",
+                            "padding": "20px",
+                            "marginBottom": "15px",
+                            "backgroundColor": "#f44336",
+                        },
+                    )
+                )
+        return results
+
+    return html.Div(["Click run to start evaluation"])
 
 
 if __name__ == "__main__":

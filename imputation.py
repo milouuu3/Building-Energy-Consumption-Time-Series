@@ -69,16 +69,14 @@ def lightgbm(df):
 def create_mcar_data(df, missing=0.2, seed=42):
     rng = np.random.default_rng(seed)
     df_masked = df.copy()
-    samples = rng.normal(loc=0.0, scale=1.0, size=df.shape)
-    threshold = np.percentile(samples, missing * 100)
-    df_masked.values[samples < threshold] = np.nan
+    samples = rng.uniform(0, 1, size=df.shape)
+    df_masked.values[samples < missing] = np.nan
     return df_masked
 
 
-def evaluate_imputation(df, method, missing=0.2, seed=42):
-    df_masked = create_mcar_data(df, missing=missing, seed=seed)
-    masked = df_masked.isna()
-    df_imputed = impute_data(df_masked.copy(), method)
+def evaluate_imputation(df, method):
+    masked = df.isna()
+    df_imputed = impute_data(df, method)
 
     errors = {}
     for col in df.columns:
