@@ -29,6 +29,7 @@ app.layout = html.Div(
         ),
         # Store dataset
         dcc.Store(id="store-dataset"),
+        html.Div(id="output-data-upload"),
         # Create extra tabs for differen viewing levels
         dcc.Loading(
             id="data-upload-loading",
@@ -40,13 +41,6 @@ app.layout = html.Div(
                     dcc.Tab(
                         label="dataset-evaluation",
                         children=[
-                            dcc.Checklist(
-                                options=[{"label": "Add MCAR mask", "value": "mcar-mask-on"}],
-                                value=[],
-                                id="checklist-add-mask",
-                            ),
-                            dcc.Slider(0, 50, 5, value=20, id="slider-mcar"),
-                            html.Br(),
                             html.Button("Run", id="button-run-dataset", n_clicks=0),
                             html.Div(id="dataset-results"),
                             html.Br(),
@@ -78,7 +72,6 @@ app.layout = html.Div(
                 ],
             ),
         ),
-        html.Div(id="output-data-upload"),
     ],
     style={"padding": "20px"},
 )
@@ -161,45 +154,38 @@ def update_output(content, names):
     Output("dataset-results", "children"),
     Input("button-run-dataset", "n_clicks"),
     State("store-dataset", "data"),
-    State("checklist-add-mask", "value"),
-    State("slider-mcar", "value"),
 )
-def run_imputation(n_clicks, data, mask_checklist, mcar_value):
+def run_imputation(n_clicks, data):
     if n_clicks and data:
         df = pd.read_json(data, orient="split")
-        df_masked = create_mcar_data(df.copy())
+
+        df_masked, samples = create_mcar_data(df.copy())
 
         results = []
         for method in methods:
             print(f"Imputing with {method}")
-
             try:
-                df_imputed = impute_data(df_masked.copy(), method)
-                df_head = df_imputed.head().reset_index()
-
-                missing = df_imputed.isna().sum().sum()
-                if missing > 0:
-                    results.append(
-                        html.Div(
-                            [
-                                html.P(
-                                    f"Warning: still contains {missing} missing values. Forecasting accuracy might be affected.",
-                                    style={
-                                        "color": "white",
-                                        "padding": "20px",
-                                        "marginBottom": "15px",
-                                        "backgroundColor": "#f44336",
-                                    },
-                                ),
-                            ]
-                        )
+                error = evaluate_imputation(df.copy(), df_masked.copy(), samples, method)
+                df_error = pd.DataFrame(error)
+                df_error = df_error.reset_index()
+                results.append(
+                    html.Div(
+                        [
+                            html.H4(f"Error metrics for {method}"),
+                            dash_table.DataTable(
+                                data=df_error.to_dict("records"),
+                                columns=[{"name": i, "id": i} for i in df_error.columns],
+                            ),
+                        ]
                     )
-
-                results.append(create_datatable(df_imputed, method))
+                )
             except Exception as e:
                 results.append(
                     html.Div(
-                        html.P(f"Error: {e}"),
+                        [
+                            html.H4(f"Error metrics for {method}"),
+                            html.P(f"Error: {e}"),
+                        ],
                         style={
                             "color": "white",
                             "padding": "20px",

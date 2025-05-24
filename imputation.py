@@ -2,6 +2,7 @@ from sklearn.linear_model import LinearRegression
 from lightgbm import LGBMRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 import numpy as np
+import pandas as pd
 
 
 def locf(df):
@@ -68,25 +69,29 @@ def lightgbm(df):
 
 def create_mcar_data(df, missing=0.2, seed=42):
     rng = np.random.default_rng(seed)
+    samples = rng.uniform(0, 1, size=df.shape) < missing
     df_masked = df.copy()
-    samples = rng.uniform(0, 1, size=df.shape)
-    df_masked.values[samples < missing] = np.nan
-    return df_masked
+    df_masked.values[samples] = np.nan
+    return df_masked, samples
 
 
-def evaluate_imputation(df, method):
-    masked = df.isna()
-    df_imputed = impute_data(df, method)
+def evaluate_imputation(df, df_masked, samples, method):
+    df_imputed = impute_data(df_masked, method)
 
     errors = {}
-    for col in df.columns:
-        y_pred = df_imputed.loc[masked[col], col]
-        y_true = df.loc[masked[col], col]
+    for i, col in enumerate(df.columns):
+        mask = samples[:, i]
+        y_true = df.values[:, i][mask]
+        y_pred = df_imputed.values[:, i][mask]
 
-        mae = mean_absolute_error(y_true, y_pred)
-        mse = mean_squared_error(y_true, y_pred)
-        rmse = np.sqrt(mse)
-        nrmse = rmse / (np.maximum(y_true) - np.minimum(y_true))
+        valid = (~np.isnan(y_true)) & (~np.isnan(y_pred))
+        y_true = y_true[valid]
+        y_pred = y_pred[valid]
+
+        mae = np.round(mean_absolute_error(y_true, y_pred), 2)
+        mse = np.round(mean_squared_error(y_true, y_pred), 2)
+        rmse = np.round(np.sqrt(mse), 2)
+        nrmse = np.round(rmse / (np.max(y_true) - np.min(y_true)), 2)
 
         errors[col] = {"MAE": mae, "MSE": mse, "RMSE": rmse, "NRMSE": nrmse}
     return errors
