@@ -9,24 +9,30 @@ app = Dash()
 
 app.layout = html.Div(
     [
-        # Title
-        html.H1("Building Energy Consumption Time Series"),
+        # Header
+        html.Div(
+            className="app-header",
+            children=[
+                html.H1("Building Energy Consumption Time Series", className="app-header--title")
+            ],
+        ),
         # Dataset upload
         html.H2(children="Upload Building Energy Consumption Dataset"),
         dcc.Upload(
             id="upload-data",
-            children=html.Div(["Drag and Drop or ", html.A("Select Files")]),
+            children=html.Div(["Drag and Drop or ", html.A("Select CSV File")]),
             style={
-                "width": "100%",
-                "height": "60px",
-                "lineHeight": "60px",
-                "borderWidth": "1px",
-                "borderStyle": "dashed",
-                "borderRadius": "5px",
+                "backgroundColor": "#ffffff",
+                "border": "1.8px solid #2C3E50",
+                "borderRadius": "8px",
+                "padding": "40px 20px",
+                "margin": "20px auto",
+                "maxWidth": "600px",
+                "cursor": "pointer",
                 "textAlign": "center",
-                "margin": "10px",
             },
             multiple=False,
+            accept=".csv",
         ),
         # Store dataset
         dcc.Store(id="store-dataset"),
@@ -46,6 +52,28 @@ app.layout = html.Div(
                             html.Button("Run", id="button-run-dataset", n_clicks=0),
                             html.Div(id="dataset-results"),
                         ],
+                        style={
+                            "backgroundColor": "#ffffff",
+                            "border": "1px solid #bdc3c7",
+                            "borderBottom": "none",
+                            "borderTopLeftRadius": "6px",
+                            "borderTopRightRadius": "6px",
+                            "padding": "12px 24px",
+                            "fontFamily": "sans-serif",
+                            "fontSize": "14px",
+                            "fontWeight": "600",
+                            "color": "#2C3E50",
+                            "cursor": "pointer",
+                            "marginRight": "5px",
+                        },
+                        selected_style={
+                            "backgroundColor": "#CDD0D3",
+                            "border": "1px solid #ffffff",
+                            "padding": "12px 24px",
+                            "fontWeight": "600",
+                            "borderTopLeftRadius": "6px",
+                            "borderTopRightRadius": "6px",
+                        },
                     ),
                     # Building level
                     dcc.Tab(
@@ -59,12 +87,33 @@ app.layout = html.Div(
                             html.Button("Run forecast", id="button-run-forecast"),
                             dcc.Graph(id="plot-forecasting"),
                         ],
+                        style={
+                            "backgroundColor": "#ffffff",
+                            "border": "1px solid #bdc3c7",
+                            "borderBottom": "none",
+                            "borderTopLeftRadius": "6px",
+                            "borderTopRightRadius": "6px",
+                            "padding": "12px 24px",
+                            "fontFamily": "sans-serif",
+                            "fontSize": "14px",
+                            "fontWeight": "600",
+                            "color": "#2C3E50",
+                            "cursor": "pointer",
+                            "marginRight": "5px",
+                        },
+                        selected_style={
+                            "backgroundColor": "#CDD0D3",
+                            "border": "1px solid #ffffff",
+                            "padding": "12px 24px",
+                            "fontWeight": "600",
+                            "borderTopLeftRadius": "6px",
+                            "borderTopRightRadius": "6px",
+                        },
                     ),
                 ],
             ),
         ),
     ],
-    style={"padding": "20px"},
 )
 
 
@@ -84,13 +133,8 @@ def preprocess_data(df: pd.DataFrame):
 
 
 def parse_contents(contents, filename):
-    # Check if uploaded file is indeed .csv
-    if not filename.endswith(".csv"):
-        return html.Div(["Only CSV files are supported."]), None
-
-    ctype, cstring = contents.split(",")
+    _, cstring = contents.split(",")
     decoded = base64.b64decode(cstring)
-
     try:
         df = pd.read_csv(io.StringIO(decoded.decode("utf-8")))
         df = preprocess_data(df)
@@ -98,7 +142,7 @@ def parse_contents(contents, filename):
         print(e)
         return html.Div(["There was an error processing this file."]), None
 
-    return df
+    return None, df
 
 
 methods = [
@@ -110,19 +154,6 @@ methods = [
 ]
 
 
-def create_datatable(df: pd.DataFrame, method):
-    df = df.head().reset_index()
-    return html.Div(
-        [
-            html.H3(f"Imputed with {method}"),
-            dash_table.DataTable(
-                data=df.to_dict("records"),
-                columns=[{"name": i, "id": i} for i in df.columns],
-            ),
-        ],
-    )
-
-
 @callback(
     Output("store-dataset", "data"),
     Output("output-data-upload", "children"),
@@ -131,14 +162,13 @@ def create_datatable(df: pd.DataFrame, method):
 )
 def update_output(content, names):
     if content is not None:
-        print("Dataset is uploaded...")
-        df = parse_contents(content, names)
-        if isinstance(df, pd.DataFrame):
-            data = df.to_json(orient="split")
-            return data, html.Div(["Dataset is uploaded"])
+        div, df = parse_contents(content, names)
+        if div:
+            return None, div
         else:
-            return None, html.Div(["There was an error processing this dataset"])
-    return None, html.Div(["Only csv files are allowed"])
+            data = df.to_json(orient="split")
+            return data, html.Div([f"Succesfully uploaded: {names}"])
+    return None, html.Div(["No file uploaded yet..."])
 
 
 @callback(
@@ -176,15 +206,7 @@ def run_imputation(n_clicks, data):
                     html.Div(
                         [
                             html.H3(f"Error metrics for {method}"),
-                            html.P(
-                                f"Error: {e}",
-                                style={
-                                    "color": "white",
-                                    "padding": "20px",
-                                    "marginBottom": "15px",
-                                    "backgroundColor": "#f44336",
-                                },
-                            ),
+                            html.P(f"Error: {e}"),
                         ],
                     )
                 )

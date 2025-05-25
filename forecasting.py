@@ -1,4 +1,3 @@
-from sklearn.linear_model import LinearRegression
 from lightgbm import LGBMRegressor
 import plotly.graph_objs as go
 
