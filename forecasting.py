@@ -40,7 +40,7 @@ def plot_forecast(y_test, y_pred):
             y=y_test.values,
             name="y_test",
             line=dict(color="red"),
-            # mode="lines",
+            mode="lines",
         )
     )
     fig.add_trace(
@@ -49,10 +49,13 @@ def plot_forecast(y_test, y_pred):
             y=y_pred,
             name="y_pred",
             line=dict(color="blue"),
-            # mode="lines",
+            mode="lines",
         )
     )
     fig.update_layout(
-        title="Forecast vs Actual", showlegend=True, xaxis_title="Timestamp", yaxis_title="Value"
+        title="Forecast vs Actual",
+        showlegend=True,
+        xaxis_title="Timestamp",
+        yaxis_title="Energy Consumption (kWh)",
     )
     return fig

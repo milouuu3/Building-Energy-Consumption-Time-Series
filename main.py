@@ -4,6 +4,19 @@ from forecasting import forecast_data, plot_forecast
 import base64
 import io
 import pandas as pd
+import eco2ai
+from codecarbon import EmissionsTracker
+import time
+
+
+methods = [
+    "LOCF",
+    "NOCB",
+    "Linear Interpolation",
+    "Linear Regression",
+    "LightGBM",
+]
+
 
 app = Dash()
 
@@ -39,79 +52,105 @@ app.layout = html.Div(
         dcc.Store(id="store-imputed-dataset"),
         html.Div(id="output-data-upload"),
         # Create extra tabs for differen viewing levels
-        dcc.Loading(
-            id="data-upload-loading",
-            type="circle",
-            children=dcc.Tabs(
-                id="tabs",
-                children=[
-                    # Dataset level
-                    dcc.Tab(
-                        label="dataset-evaluation",
-                        children=[
-                            html.Button("Run", id="button-run-dataset", n_clicks=0),
-                            html.Div(id="dataset-results"),
-                        ],
-                        style={
-                            "backgroundColor": "#ffffff",
-                            "border": "1px solid #bdc3c7",
-                            "borderBottom": "none",
-                            "borderTopLeftRadius": "6px",
-                            "borderTopRightRadius": "6px",
-                            "padding": "12px 24px",
-                            "fontFamily": "sans-serif",
-                            "fontSize": "14px",
-                            "fontWeight": "600",
-                            "color": "#2C3E50",
-                            "cursor": "pointer",
-                            "marginRight": "5px",
-                        },
-                        selected_style={
-                            "backgroundColor": "#CDD0D3",
-                            "border": "1px solid #ffffff",
-                            "padding": "12px 24px",
-                            "fontWeight": "600",
-                            "borderTopLeftRadius": "6px",
-                            "borderTopRightRadius": "6px",
-                        },
-                    ),
-                    # Building level
-                    dcc.Tab(
-                        label="building-forecasting",
-                        children=[
-                            dcc.Dropdown(
-                                id="dropdown-building", placeholder="Select Building Column"
-                            ),
-                            dcc.Slider(1, 30, 1, value=7, id="slider-lags"),
-                            html.Br(),
-                            html.Button("Run forecast", id="button-run-forecast"),
-                            dcc.Graph(id="plot-forecasting"),
-                        ],
-                        style={
-                            "backgroundColor": "#ffffff",
-                            "border": "1px solid #bdc3c7",
-                            "borderBottom": "none",
-                            "borderTopLeftRadius": "6px",
-                            "borderTopRightRadius": "6px",
-                            "padding": "12px 24px",
-                            "fontFamily": "sans-serif",
-                            "fontSize": "14px",
-                            "fontWeight": "600",
-                            "color": "#2C3E50",
-                            "cursor": "pointer",
-                            "marginRight": "5px",
-                        },
-                        selected_style={
-                            "backgroundColor": "#CDD0D3",
-                            "border": "1px solid #ffffff",
-                            "padding": "12px 24px",
-                            "fontWeight": "600",
-                            "borderTopLeftRadius": "6px",
-                            "borderTopRightRadius": "6px",
-                        },
-                    ),
-                ],
-            ),
+        dcc.Tabs(
+            id="tabs",
+            children=[
+                # Dataset level
+                dcc.Tab(
+                    label="Dataset Imputation Evaluation",
+                    children=[
+                        html.Button("Run", id="button-run-dataset", n_clicks=0),
+                        html.Div(id="dataset-results"),
+                    ],
+                    style={
+                        "backgroundColor": "#ffffff",
+                        "border": "1px solid #bdc3c7",
+                        "borderBottom": "none",
+                        "borderTopLeftRadius": "6px",
+                        "borderTopRightRadius": "6px",
+                        "padding": "12px 24px",
+                        "fontFamily": "sans-serif",
+                        "fontSize": "14px",
+                        "fontWeight": "600",
+                        "color": "#2C3E50",
+                        "cursor": "pointer",
+                        "marginRight": "5px",
+                    },
+                    selected_style={
+                        "backgroundColor": "#CDD0D3",
+                        "border": "1px solid #ffffff",
+                        "padding": "12px 24px",
+                        "fontWeight": "600",
+                        "borderTopLeftRadius": "6px",
+                        "borderTopRightRadius": "6px",
+                    },
+                ),
+                # Forecasting
+                dcc.Tab(
+                    label="Forecasting Building Energy Consumption",
+                    children=[
+                        dcc.Dropdown(
+                            id="dropdown-imputation-method",
+                            placeholder="Select an Imputation Method",
+                            options=[{"label": i, "value": i} for i in methods],
+                        ),
+                        dcc.Dropdown(id="dropdown-building", placeholder="Select Building Column"),
+                        dcc.Slider(1, 30, 1, value=7, id="slider-lags"),
+                        html.Br(),
+                        html.Button("Run forecast", id="button-run-forecast"),
+                        dcc.Graph(id="plot-forecasting"),
+                    ],
+                    style={
+                        "backgroundColor": "#ffffff",
+                        "border": "1px solid #bdc3c7",
+                        "borderBottom": "none",
+                        "borderTopLeftRadius": "6px",
+                        "borderTopRightRadius": "6px",
+                        "padding": "12px 24px",
+                        "fontFamily": "sans-serif",
+                        "fontSize": "14px",
+                        "fontWeight": "600",
+                        "color": "#2C3E50",
+                        "cursor": "pointer",
+                        "marginRight": "5px",
+                    },
+                    selected_style={
+                        "backgroundColor": "#CDD0D3",
+                        "border": "1px solid #ffffff",
+                        "padding": "12px 24px",
+                        "fontWeight": "600",
+                        "borderTopLeftRadius": "6px",
+                        "borderTopRightRadius": "6px",
+                    },
+                ),
+                # Computation Energy Consumption
+                dcc.Tab(
+                    label="Computational Energy Consumption",
+                    children=[],
+                    style={
+                        "backgroundColor": "#ffffff",
+                        "border": "1px solid #bdc3c7",
+                        "borderBottom": "none",
+                        "borderTopLeftRadius": "6px",
+                        "borderTopRightRadius": "6px",
+                        "padding": "12px 24px",
+                        "fontFamily": "sans-serif",
+                        "fontSize": "14px",
+                        "fontWeight": "600",
+                        "color": "#2C3E50",
+                        "cursor": "pointer",
+                        "marginRight": "5px",
+                    },
+                    selected_style={
+                        "backgroundColor": "#CDD0D3",
+                        "border": "1px solid #ffffff",
+                        "padding": "12px 24px",
+                        "fontWeight": "600",
+                        "borderTopLeftRadius": "6px",
+                        "borderTopRightRadius": "6px",
+                    },
+                ),
+            ],
         ),
     ],
 )
@@ -145,15 +184,6 @@ def parse_contents(contents, filename):
     return None, df
 
 
-methods = [
-    "LOCF",
-    "NOCB",
-    "Linear Interpolation",
-    "Linear Regression",
-    "LightGBM",
-]
-
-
 @callback(
     Output("store-dataset", "data"),
     Output("output-data-upload", "children"),
@@ -182,15 +212,17 @@ def run_imputation(n_clicks, data):
         df = pd.read_json(io.StringIO(data), orient="split")
 
         df_masked, samples = create_mcar_data(df.copy())
-
-        results = []
+        imputation_error = []
+        imputed_data = {}
         for method in methods:
             print(f"Imputing with {method}")
             try:
+                # First impute on masked data and get error
                 error = evaluate_imputation(df.copy(), df_masked.copy(), samples, method)
                 df_error = pd.DataFrame(error)
                 df_error = df_error.reset_index()
-                results.append(
+
+                imputation_error.append(
                     html.Div(
                         [
                             html.H4(f"Error metrics for {method}"),
@@ -201,30 +233,38 @@ def run_imputation(n_clicks, data):
                         ]
                     )
                 )
+
+                # Impute on original data (no mcar mask)
+                df_imputed = impute_data(df.copy(), method)
+                imputed_data[method] = df_imputed.to_json(orient="split")
+
             except Exception as e:
-                results.append(
+                imputation_error.append(
                     html.Div(
                         [
-                            html.H3(f"Error metrics for {method}"),
+                            html.H4(f"Error metrics for {method}"),
                             html.P(f"Error: {e}"),
                         ],
                     )
                 )
-        # Impute the original data using the chosen method without mask
-        method_choice = "LightGBM"
-        print(f"Method {method_choice} is chosen as final method")
-        df_imputed = impute_data(df.copy(), method_choice)
-        imputed_data = df_imputed.to_json(orient="split")
-        return results, imputed_data
+
+        return imputation_error, imputed_data
 
     return html.Div(["Click run to start evaluation"]), None
 
 
-@callback(Output("dropdown-building", "options"), Input("store-imputed-dataset", "data"))
-def update_options(imputed_data):
-    if imputed_data is None:
+@callback(
+    Output("dropdown-building", "options"),
+    Input("store-imputed-dataset", "data"),
+    Input("dropdown-imputation-method", "value"),
+)
+def get_data(imputed_data, method):
+    if not imputed_data or not method:
         return []
-    df_imputed = pd.read_json(io.StringIO(imputed_data), orient="split")
+    data = imputed_data.get(method)
+    if not data:
+        return []
+    df_imputed = pd.read_json(io.StringIO(data), orient="split")
     return [{"label": i, "value": i} for i in df_imputed.columns]
 
 
@@ -234,13 +274,19 @@ def update_options(imputed_data):
     State("store-imputed-dataset", "data"),
     State("dropdown-building", "value"),
     State("slider-lags", "value"),
+    State("dropdown-imputation-method", "value"),
 )
-def run_forecast(n_clicks, imputed_data, col, n_lags):
-    if n_clicks and imputed_data:
-        df_imputed = pd.read_json(io.StringIO(imputed_data), orient="split")
+def run_forecast(n_clicks, imputed_data, col, n_lags, method):
+    if n_clicks and imputed_data and method:
+        df = imputed_data.get(method)
+        if df is None:
+            print(f"Forecasting: imputed data not found of method: {method}")
+            return None
+
+        df_imputed = pd.read_json(io.StringIO(df), orient="split")
         y_test, y_pred = forecast_data(df_imputed, col, n_lags)
-        fig = plot_forecast(y_test, y_pred)
-        return fig
+        return plot_forecast(y_test, y_pred)
+    return None
 
 
 if __name__ == "__main__":
