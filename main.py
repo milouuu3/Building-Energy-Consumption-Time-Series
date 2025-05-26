@@ -6,7 +6,6 @@ import io
 import pandas as pd
 import eco2ai
 from codecarbon import EmissionsTracker
-import numpy as np
 
 
 methods = [
@@ -33,19 +32,10 @@ app.layout = html.Div(
         html.H2(children="Upload Building Energy Consumption Dataset"),
         dcc.Upload(
             id="upload-data",
-            children=html.Div(["Drag and Drop or ", html.A("Select CSV File")]),
-            style={
-                "backgroundColor": "#ffffff",
-                "border": "1.8px solid #2C3E50",
-                "borderRadius": "8px",
-                "padding": "40px 20px",
-                "margin": "20px auto",
-                "maxWidth": "600px",
-                "cursor": "pointer",
-                "textAlign": "center",
-            },
+            children=html.Div(html.A("Select CSV File")),
             multiple=False,
             accept=".csv",
+            className="class-upload",
         ),
         # Store dataset
         dcc.Store(id="store-dataset"),
@@ -53,45 +43,36 @@ app.layout = html.Div(
         html.Div(id="output-data-upload"),
         # Create extra tabs for differen viewing levels
         dcc.Tabs(
-            id="tabs",
+            id="id-tabs",
+            parent_className="class-tabs",
+            className="tabs-container",
             children=[
-                # Dataset level
+                # Dataset level imputation
                 dcc.Tab(
                     label="Dataset Imputation Evaluation",
                     children=[
                         html.Button("Run", id="button-run-dataset", n_clicks=0),
                         html.Div(id="dataset-results"),
+                        # Download imputed data button
+                        html.H2("Download Imputed Data"),
+                        dcc.Dropdown(
+                            id="dropdown-download-imputation-method",
+                            placeholder="Select Imputation Method",
+                            options=[{"label": m, "value": m} for m in methods],
+                        ),
+                        html.Button("Download Imputed Dataset", id="button-download"),
+                        dcc.Download(id="download-imputed-data"),
                     ],
-                    style={
-                        "backgroundColor": "#ffffff",
-                        "border": "1px solid #bdc3c7",
-                        "borderBottom": "none",
-                        "borderTopLeftRadius": "6px",
-                        "borderTopRightRadius": "6px",
-                        "padding": "12px 24px",
-                        "fontFamily": "sans-serif",
-                        "fontSize": "14px",
-                        "fontWeight": "600",
-                        "color": "#2C3E50",
-                        "cursor": "pointer",
-                        "marginRight": "5px",
-                    },
-                    selected_style={
-                        "backgroundColor": "#CDD0D3",
-                        "border": "1px solid #ffffff",
-                        "padding": "12px 24px",
-                        "fontWeight": "600",
-                        "borderTopLeftRadius": "6px",
-                        "borderTopRightRadius": "6px",
-                    },
+                    className="class-tab",
+                    selected_className="tab--selected",
                 ),
-                # Forecasting
+                # Forecasting building level
                 dcc.Tab(
                     label="Forecasting Building Energy Consumption",
                     children=[
                         dcc.Dropdown(
                             id="dropdown-imputation-method",
-                            placeholder="Select an Imputation Method",
+                            placeholder="Select Imputation Method",
                             options=[{"label": i, "value": i} for i in methods],
                         ),
                         dcc.Dropdown(id="dropdown-building", placeholder="Select Building Column"),
@@ -100,55 +81,15 @@ app.layout = html.Div(
                         html.Button("Run forecast", id="button-run-forecast"),
                         dcc.Graph(id="plot-forecasting"),
                     ],
-                    style={
-                        "backgroundColor": "#ffffff",
-                        "border": "1px solid #bdc3c7",
-                        "borderBottom": "none",
-                        "borderTopLeftRadius": "6px",
-                        "borderTopRightRadius": "6px",
-                        "padding": "12px 24px",
-                        "fontFamily": "sans-serif",
-                        "fontSize": "14px",
-                        "fontWeight": "600",
-                        "color": "#2C3E50",
-                        "cursor": "pointer",
-                        "marginRight": "5px",
-                    },
-                    selected_style={
-                        "backgroundColor": "#CDD0D3",
-                        "border": "1px solid #ffffff",
-                        "padding": "12px 24px",
-                        "fontWeight": "600",
-                        "borderTopLeftRadius": "6px",
-                        "borderTopRightRadius": "6px",
-                    },
+                    className="class-tab",
+                    selected_className="tab--selected",
                 ),
-                # Computation Energy Consumption
+                # Computation Energy Consumption (per method)
                 dcc.Tab(
                     label="Computational Energy Consumption",
-                    children=[html.Div(id="computational-energy-consumption")],
-                    style={
-                        "backgroundColor": "#ffffff",
-                        "border": "1px solid #bdc3c7",
-                        "borderBottom": "none",
-                        "borderTopLeftRadius": "6px",
-                        "borderTopRightRadius": "6px",
-                        "padding": "12px 24px",
-                        "fontFamily": "sans-serif",
-                        "fontSize": "14px",
-                        "fontWeight": "600",
-                        "color": "#2C3E50",
-                        "cursor": "pointer",
-                        "marginRight": "5px",
-                    },
-                    selected_style={
-                        "backgroundColor": "#CDD0D3",
-                        "border": "1px solid #ffffff",
-                        "padding": "12px 24px",
-                        "fontWeight": "600",
-                        "borderTopLeftRadius": "6px",
-                        "borderTopRightRadius": "6px",
-                    },
+                    children=html.Div(id="computational-energy-consumption"),
+                    className="class-tab",
+                    selected_className="tab--selected",
                 ),
             ],
         ),
@@ -179,7 +120,7 @@ def parse_contents(contents, filename):
         df = preprocess_data(df)
     except Exception as e:
         print(e)
-        return html.Div(["There was an error processing this file."]), None
+        return html.Div(html.P("There was an error processing this file.")), None
 
     return None, df
 
@@ -197,8 +138,8 @@ def update_output(content, names):
             return None, div
         else:
             data = df.to_json(orient="split")
-            return data, html.Div([f"Succesfully uploaded: {names}"])
-    return None, html.Div(["No file uploaded yet..."])
+            return data, html.Div(html.H5(f"Succesfully uploaded: {names}"))
+    return None, html.Div(html.H5("No file uploaded yet..."))
 
 
 @callback(
@@ -210,6 +151,10 @@ def update_output(content, names):
 def run_imputation(n_clicks, data):
     if n_clicks and data:
         df = pd.read_json(io.StringIO(data), orient="split")
+
+        # Close files before appending new results
+        open("emission.csv", "w").close()
+        open("my_mission.csv", "w").close()
 
         df_masked, samples = create_mcar_data(df.copy())
         imputation_error = []
@@ -260,7 +205,7 @@ def run_imputation(n_clicks, data):
 
         return imputation_error, imputed_data
 
-    return html.Div(["Click run to start evaluation"]), None, None
+    return html.Div(html.H5("Click run to start evaluation")), None
 
 
 @callback(
@@ -304,25 +249,46 @@ def run_forecast(n_clicks, imputed_data, col, n_lags, method):
 )
 def visualize_energy_consumption(n_clicks):
     if not n_clicks:
-        return html.Div("No measurements available yet...")
+        return html.Div(html.H5("No measurements available yet..."))
 
     df_cc = pd.read_csv("emissions.csv")
     df_eco = pd.read_csv("my_emission.csv")
+
+    # Show only these specific columns out of emission files
+    cc_col = ["project_name", "duration", "emissions", "energy_consumed"]
+    eco_col = ["project_name", "duration(s)", "power_consumption(kWh)", "CO2_emissions(kg)"]
 
     return html.Div(
         [
             html.H3("CodeCarbon"),
             dash_table.DataTable(
                 data=df_cc.to_dict("records"),
-                columns=[{"name": i, "id": i} for i in df_cc.columns],
+                columns=[{"name": i, "id": i} for i in cc_col],
             ),
             html.H3("eco2AI"),
             dash_table.DataTable(
                 data=df_eco.to_dict("records"),
-                columns=[{"name": i, "id": i} for i in df_eco.columns],
+                columns=[{"name": i, "id": i} for i in eco_col],
             ),
         ]
     )
+
+
+@callback(
+    Output("download-imputed-data", "data"),
+    Input("button-download", "n_clicks"),
+    State("store-imputed-dataset", "data"),
+    State("dropdown-download-imputation-method", "value"),
+    prevent_initial_call=True,
+)
+def download_data(n_clicks, data, method):
+    if n_clicks and data and method:
+        data = data.get(method)
+        if not data:
+            return None
+        df = pd.read_json(io.StringIO(data), orient="split")
+        return dcc.send_data_frame(df.to_csv, "imputed-data.csv")
+    return None
 
 
 if __name__ == "__main__":
