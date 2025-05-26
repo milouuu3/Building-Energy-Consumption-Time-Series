@@ -6,7 +6,7 @@ import io
 import pandas as pd
 import eco2ai
 from codecarbon import EmissionsTracker
-import time
+import numpy as np
 
 
 methods = [
@@ -126,7 +126,7 @@ app.layout = html.Div(
                 # Computation Energy Consumption
                 dcc.Tab(
                     label="Computational Energy Consumption",
-                    children=[],
+                    children=[html.Div(id="computational-energy-consumption")],
                     style={
                         "backgroundColor": "#ffffff",
                         "border": "1px solid #bdc3c7",
@@ -234,8 +234,18 @@ def run_imputation(n_clicks, data):
                     )
                 )
 
-                # Impute on original data (no mcar mask)
+                # Impute for a second time, but on original data (no mcar mask)
+                # Setup the tracking for emissions, consumption and runtime
+                eco2ai_tracker = eco2ai.Tracker(project_name=f"eco2ai_{method}")
+                codecarbon_tracker = EmissionsTracker(project_name=f"codecarbon_{method}")
+                eco2ai_tracker.start()
+                codecarbon_tracker.start()
+
                 df_imputed = impute_data(df.copy(), method)
+
+                codecarbon_tracker.stop()
+                eco2ai_tracker.stop()
+
                 imputed_data[method] = df_imputed.to_json(orient="split")
 
             except Exception as e:
@@ -250,7 +260,7 @@ def run_imputation(n_clicks, data):
 
         return imputation_error, imputed_data
 
-    return html.Div(["Click run to start evaluation"]), None
+    return html.Div(["Click run to start evaluation"]), None, None
 
 
 @callback(
@@ -287,6 +297,32 @@ def run_forecast(n_clicks, imputed_data, col, n_lags, method):
         y_test, y_pred = forecast_data(df_imputed, col, n_lags)
         return plot_forecast(y_test, y_pred)
     return None
+
+
+@callback(
+    Output("computational-energy-consumption", "children"), Input("button-run-dataset", "n_clicks")
+)
+def visualize_energy_consumption(n_clicks):
+    if not n_clicks:
+        return html.Div("No measurements available yet...")
+
+    df_cc = pd.read_csv("emissions.csv")
+    df_eco = pd.read_csv("my_emission.csv")
+
+    return html.Div(
+        [
+            html.H3("CodeCarbon"),
+            dash_table.DataTable(
+                data=df_cc.to_dict("records"),
+                columns=[{"name": i, "id": i} for i in df_cc.columns],
+            ),
+            html.H3("eco2AI"),
+            dash_table.DataTable(
+                data=df_eco.to_dict("records"),
+                columns=[{"name": i, "id": i} for i in df_eco.columns],
+            ),
+        ]
+    )
 
 
 if __name__ == "__main__":
