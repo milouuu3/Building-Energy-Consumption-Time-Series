@@ -16,27 +16,35 @@ def linear_interpolation(df):
     return df.interpolate(method="linear", limit_direction="both")
 
 
-def linear_regression(df):
-    df_imputed = df.copy()
+def linear_regression(df_masked, df_true=None):
+    df_imputed = df_masked.copy()
 
-    for col in df.columns:
-        missing = df[col].isna()
-        not_missing = df[col].notna()
+    for col in df_masked.columns:
+        # Get the masked samples
+        if df_true is not None:
+            masked = df_masked[col].isna() & df_true[col].notna()
+        else:
+            masked = df_masked[col].isna()
 
-        if missing.sum() == 0:
+        not_missing = df_masked[col].notna()
+
+        if masked.sum() == 0:
             continue
 
-        X = df.drop(col, axis=1)
-        y = df[col]
+        X = df_masked.drop(col, axis=1)
+        y = df_masked[col]
 
-        X_train = X.loc[not_missing]
-        y_train = y.loc[not_missing]
-        X_pred = X.loc[missing]
+        X_train = X.loc[not_missing].dropna()
+        y_train = y.loc[X_train.index]
+        X_pred = X.loc[masked].dropna()
+
+        if X_train.empty or X_pred.empty:
+            continue
 
         model = LinearRegression()
         model.fit(X_train, y_train)
         y_pred = model.predict(X_pred)
-        df_imputed.loc[missing, col] = y_pred
+        df_imputed.loc[X_pred.index, col] = y_pred
 
     return df_imputed
 
@@ -75,7 +83,10 @@ def create_mcar_data(df, missing=0.2, seed=42):
 
 
 def evaluate_imputation(df, df_masked, samples, method):
-    df_imputed = impute_data(df_masked, method)
+    if method == "Linear Regression":
+        df_imputed = impute_data(df_masked, method, df)
+    else:
+        df_imputed = impute_data(df_masked, method)
 
     errors = {}
     for i, col in enumerate(df.columns):
@@ -96,7 +107,7 @@ def evaluate_imputation(df, df_masked, samples, method):
     return errors
 
 
-def impute_data(df, method=None):
+def impute_data(df, method=None, df_true=None):
     if method == "LOCF":
         return locf(df)
     elif method == "NOCB":
@@ -104,6 +115,6 @@ def impute_data(df, method=None):
     elif method == "Linear Interpolation":
         return linear_interpolation(df)
     elif method == "Linear Regression":
-        return linear_regression(df)
+        return linear_regression(df, df_true)
     elif method == "LightGBM":
         return lightgbm(df)

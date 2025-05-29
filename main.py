@@ -1,4 +1,5 @@
 from dash import Dash, html, dcc, dash_table, Output, Input, State, callback
+import plotly.express as px
 from imputation import create_mcar_data, evaluate_imputation, impute_data
 from forecasting import forecast_data, plot_forecast
 import base64
@@ -6,7 +7,7 @@ import io
 import pandas as pd
 import eco2ai
 from codecarbon import EmissionsTracker
-
+import time
 
 methods = [
     "LOCF",
@@ -40,6 +41,7 @@ app.layout = html.Div(
         # Store dataset
         dcc.Store(id="store-dataset"),
         dcc.Store(id="store-imputed-dataset"),
+        dcc.Store(id="store-energy"),
         html.Div(id="output-data-upload"),
         # Create extra tabs for differen viewing levels
         dcc.Tabs(
@@ -66,6 +68,13 @@ app.layout = html.Div(
                     className="class-tab",
                     selected_className="tab--selected",
                 ),
+                # Computation Energy Consumption (per method)
+                dcc.Tab(
+                    label="Computational Energy Consumption",
+                    children=html.Div(id="computational-energy-consumption"),
+                    className="class-tab",
+                    selected_className="tab--selected",
+                ),
                 # Forecasting building level
                 dcc.Tab(
                     label="Forecasting Building Energy Consumption",
@@ -81,13 +90,6 @@ app.layout = html.Div(
                         html.Button("Run forecast", id="button-run-forecast"),
                         dcc.Graph(id="plot-forecasting"),
                     ],
-                    className="class-tab",
-                    selected_className="tab--selected",
-                ),
-                # Computation Energy Consumption (per method)
-                dcc.Tab(
-                    label="Computational Energy Consumption",
-                    children=html.Div(id="computational-energy-consumption"),
                     className="class-tab",
                     selected_className="tab--selected",
                 ),
@@ -142,9 +144,87 @@ def update_output(content, names):
     return None, html.Div(html.H5("No file uploaded yet..."))
 
 
+def evaluate(df, df_masked, samples):
+    imputation_error = []
+    for method in methods:
+        print(f"Imputing with {method}")
+        try:
+            # First impute on masked data and get error
+            error = evaluate_imputation(df.copy(), df_masked.copy(), samples, method)
+            df_error = pd.DataFrame(error)
+            df_error = df_error.reset_index()
+
+            imputation_error.append(
+                html.Div(
+                    [
+                        html.H4(f"Error metrics for {method}"),
+                        dash_table.DataTable(
+                            data=df_error.to_dict("records"),
+                            columns=[{"name": i, "id": i} for i in df_error.columns],
+                        ),
+                    ]
+                )
+            )
+        except Exception as e:
+            imputation_error.append(
+                html.Div(
+                    [
+                        html.H4(f"Error metrics for {method}"),
+                        html.P(f"Error: {e}"),
+                    ],
+                )
+            )
+    return imputation_error
+
+
+def impute_original_data(df):
+    imputed_data = {}
+    energy = {}
+
+    for method in methods:
+        try:
+            # Setup the tracking for emissions, consumption and runtime
+            eco2ai_tracker = eco2ai.Tracker(
+                project_name=f"eco2ai_{method}", file_name="eco2ai.csv"
+            )
+            codecarbon_tracker = EmissionsTracker(
+                project_name=f"codecarbon_{method}", output_file="codecarbon.csv"
+            )
+
+            eco2ai_tracker.start()
+            codecarbon_tracker.start()
+            start = time.time()
+
+            df_imputed = impute_data(df.copy(), method)
+
+            end = time.time()
+            codecarbon_tracker.stop()
+            eco2ai_tracker.stop()
+
+            df_eco2ai = pd.read_csv("eco2ai.csv")
+            df_codecarbon = pd.read_csv("codecarbon.csv")
+
+            codecarbon_measurements = df_codecarbon.iloc[-1]
+            eco2ai_measurements = df_eco2ai.iloc[-1]
+
+            elapsed_time = end - start
+            imputed_data[method] = df_imputed.to_json(orient="split")
+            energy[method] = {
+                "Runtime (seconds)": elapsed_time,
+                "CodeCarbon Emissions (kg)": codecarbon_measurements["emissions"],
+                "CodeCarbon Energy (kWh)": codecarbon_measurements["energy_consumed"],
+                "eco2AI Emissions (kg)": eco2ai_measurements["CO2_emissions(kg)"],
+                "eco2AI Energy (kWh)": eco2ai_measurements["power_consumption(kWh)"],
+            }
+        except Exception as e:
+            print(f"Error {methods}: {e}")
+    return imputed_data, energy
+
+
 @callback(
     Output("dataset-results", "children"),
     Output("store-imputed-dataset", "data"),
+    Output("store-energy", "data"),
     Input("button-run-dataset", "n_clicks"),
     State("store-dataset", "data"),
 )
@@ -152,60 +232,13 @@ def run_imputation(n_clicks, data):
     if n_clicks and data:
         df = pd.read_json(io.StringIO(data), orient="split")
 
-        # Close files before appending new results
-        open("emission.csv", "w").close()
-        open("my_mission.csv", "w").close()
-
         df_masked, samples = create_mcar_data(df.copy())
-        imputation_error = []
-        imputed_data = {}
-        for method in methods:
-            print(f"Imputing with {method}")
-            try:
-                # First impute on masked data and get error
-                error = evaluate_imputation(df.copy(), df_masked.copy(), samples, method)
-                df_error = pd.DataFrame(error)
-                df_error = df_error.reset_index()
+        imputation_error = evaluate(df, df_masked, samples)
+        imputed_data, energy = impute_original_data(df)
 
-                imputation_error.append(
-                    html.Div(
-                        [
-                            html.H4(f"Error metrics for {method}"),
-                            dash_table.DataTable(
-                                data=df_error.to_dict("records"),
-                                columns=[{"name": i, "id": i} for i in df_error.columns],
-                            ),
-                        ]
-                    )
-                )
+        return imputation_error, imputed_data, energy
 
-                # Impute for a second time, but on original data (no mcar mask)
-                # Setup the tracking for emissions, consumption and runtime
-                eco2ai_tracker = eco2ai.Tracker(project_name=f"eco2ai_{method}")
-                codecarbon_tracker = EmissionsTracker(project_name=f"codecarbon_{method}")
-                eco2ai_tracker.start()
-                codecarbon_tracker.start()
-
-                df_imputed = impute_data(df.copy(), method)
-
-                codecarbon_tracker.stop()
-                eco2ai_tracker.stop()
-
-                imputed_data[method] = df_imputed.to_json(orient="split")
-
-            except Exception as e:
-                imputation_error.append(
-                    html.Div(
-                        [
-                            html.H4(f"Error metrics for {method}"),
-                            html.P(f"Error: {e}"),
-                        ],
-                    )
-                )
-
-        return imputation_error, imputed_data
-
-    return html.Div(html.H5("Click run to start evaluation")), None
+    return html.Div(html.H5("Click run to start evaluation")), None, None
 
 
 @callback(
@@ -244,31 +277,49 @@ def run_forecast(n_clicks, imputed_data, col, n_lags, method):
     return None
 
 
-@callback(
-    Output("computational-energy-consumption", "children"), Input("button-run-dataset", "n_clicks")
-)
-def visualize_energy_consumption(n_clicks):
-    if not n_clicks:
+@callback(Output("computational-energy-consumption", "children"), Input("store-energy", "data"))
+def visualize_energy_consumption(data):
+    if not data:
         return html.Div(html.H5("No measurements available yet..."))
 
-    df_cc = pd.read_csv("emissions.csv")
-    df_eco = pd.read_csv("my_emission.csv")
+    # Melt the measurements columns from CodeCarbon and eco2AI together per metric
+    df = pd.DataFrame.from_dict(data, orient="index").reset_index()
+    df.rename(columns={"index": "Method"}, inplace=True)
+    df_co2 = df.melt(
+        id_vars="Method",
+        value_vars=["CodeCarbon Emissions (kg)", "eco2AI Emissions (kg)"],
+        value_name="Emissions (kg)",
+    )
+    df_consump = df.melt(
+        id_vars="Method",
+        value_vars=["CodeCarbon Energy (kWh)", "eco2AI Energy (kWh)"],
+        value_name="Energy Consumption (kWh)",
+    )
 
-    # Show only these specific columns out of emission files
-    cc_col = ["project_name", "duration", "emissions", "energy_consumed"]
-    eco_col = ["project_name", "duration(s)", "power_consumption(kWh)", "CO2_emissions(kg)"]
+    # Create bar figures
+    fig_time = px.bar(df, x="Method", y="Runtime (seconds)", title="Runtime per method")
+    fig_co2 = px.bar(
+        df_co2, x="Method", y="Emissions (kg)", title="CO2 Emissions per method and tracker"
+    )
+    fig_consump = px.bar(
+        df_consump,
+        x="Method",
+        y="Energy Consumption (kWh)",
+        title="Energy Consumption per method and tracker",
+    )
 
     return html.Div(
         [
-            html.H3("CodeCarbon"),
             dash_table.DataTable(
-                data=df_cc.to_dict("records"),
-                columns=[{"name": i, "id": i} for i in cc_col],
+                data=df.to_dict("records"),
+                columns=[{"name": i, "id": i} for i in df.columns],
             ),
-            html.H3("eco2AI"),
-            dash_table.DataTable(
-                data=df_eco.to_dict("records"),
-                columns=[{"name": i, "id": i} for i in eco_col],
+            html.Div(
+                [
+                    dcc.Graph(figure=fig_time),
+                    dcc.Graph(figure=fig_co2),
+                    dcc.Graph(figure=fig_consump),
+                ]
             ),
         ]
     )

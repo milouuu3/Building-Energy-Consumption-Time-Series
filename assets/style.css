@@ -106,3 +106,19 @@ button {
   cursor: pointer;
   margin-left: 10px;
 }
+
+.dash-table-container {
+  color: #feda6a;
+  background-color: #1d1e22 !important;
+}
+
+.dash-cell {
+  color: #1d1e22;
+  background-color: #d4d4dc !important;
+  padding: 4px !important;
+}
+
+.dash-header {
+  background-color: #393f4d !important;
+  font-weight: bold !important;
+}
