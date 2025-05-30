@@ -1,0 +1,57 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:139.0) Gecko/20100101 Firefox/139.0" version="27.1.1">
+  <diagram name="Page-1" id="r8AnWr0Z6KXWyXHqOF8t">
+    <mxGraphModel dx="815" dy="506" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="bfEMi6mA-ZqYuak5NJeT-4" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;jumpSize=6;" edge="1" parent="1" source="bfEMi6mA-ZqYuak5NJeT-2" target="bfEMi6mA-ZqYuak5NJeT-3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bfEMi6mA-ZqYuak5NJeT-16" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="bfEMi6mA-ZqYuak5NJeT-2" target="bfEMi6mA-ZqYuak5NJeT-3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bfEMi6mA-ZqYuak5NJeT-17" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="bfEMi6mA-ZqYuak5NJeT-2" target="bfEMi6mA-ZqYuak5NJeT-3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bfEMi6mA-ZqYuak5NJeT-2" value="Upload Building Energy Consumption Time Series Dataset" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="365" y="40" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="bfEMi6mA-ZqYuak5NJeT-6" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;jumpSize=6;" edge="1" parent="1" source="bfEMi6mA-ZqYuak5NJeT-3" target="bfEMi6mA-ZqYuak5NJeT-5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bfEMi6mA-ZqYuak5NJeT-3" value="Preprocess Data" style="whiteSpace=wrap;html=1;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="365" y="140" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="bfEMi6mA-ZqYuak5NJeT-10" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;jumpSize=6;" edge="1" parent="1" source="bfEMi6mA-ZqYuak5NJeT-5" target="bfEMi6mA-ZqYuak5NJeT-9">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bfEMi6mA-ZqYuak5NJeT-5" value="Masked Data Imputation Evaluation" style="whiteSpace=wrap;html=1;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="365" y="240" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="bfEMi6mA-ZqYuak5NJeT-12" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;jumpSize=6;" edge="1" parent="1" source="bfEMi6mA-ZqYuak5NJeT-9" target="bfEMi6mA-ZqYuak5NJeT-11">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bfEMi6mA-ZqYuak5NJeT-20" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="bfEMi6mA-ZqYuak5NJeT-9" target="bfEMi6mA-ZqYuak5NJeT-19">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="480" y="420" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bfEMi6mA-ZqYuak5NJeT-23" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="bfEMi6mA-ZqYuak5NJeT-9" target="bfEMi6mA-ZqYuak5NJeT-22">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bfEMi6mA-ZqYuak5NJeT-9" value="Actual Missing Data Imputation" style="whiteSpace=wrap;html=1;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="365" y="340" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="bfEMi6mA-ZqYuak5NJeT-11" value="Dataset Download" style="whiteSpace=wrap;html=1;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="210" y="440" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="bfEMi6mA-ZqYuak5NJeT-19" value="Energy Metrics" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="365" y="440" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="bfEMi6mA-ZqYuak5NJeT-22" value="Forecast Imputed Data" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="520" y="440" width="120" height="60" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
