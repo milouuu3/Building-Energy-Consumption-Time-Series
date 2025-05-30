@@ -1,6 +1,10 @@
 from dash import Dash, html, dcc, dash_table, Output, Input, State, callback
 import plotly.express as px
-from imputation import create_mcar_data, evaluate_imputation, impute_data
+from imputation import (
+    evaluate_imputation,
+    impute_data,
+    mask_data,
+)
 from forecasting import forecast_data, plot_forecast
 import base64
 import io
@@ -21,7 +25,7 @@ methods = [
 app = Dash()
 
 app.layout = html.Div(
-    [
+    children=[
         # Header
         html.Div(
             className="app-header",
@@ -53,6 +57,17 @@ app.layout = html.Div(
                 dcc.Tab(
                     label="Dataset Imputation Evaluation",
                     children=[
+                        dcc.Dropdown(
+                            id="dropdown-masking",
+                            placeholder="Select Masking Method",
+                            options=[
+                                {"label": i, "value": i}
+                                for i in [
+                                    "MCAR (Random Missingness)",
+                                    "Block Missingness (Time Gaps)",
+                                ]
+                            ],
+                        ),
                         html.Button("Run", id="button-run-dataset", n_clicks=0),
                         html.Div(id="dataset-results"),
                         # Download imputed data button
@@ -227,12 +242,14 @@ def impute_original_data(df):
     Output("store-energy", "data"),
     Input("button-run-dataset", "n_clicks"),
     State("store-dataset", "data"),
+    State("dropdown-masking", "value"),
 )
-def run_imputation(n_clicks, data):
-    if n_clicks and data:
+def run_imputation(n_clicks, data, masking):
+    if n_clicks and data and masking:
         df = pd.read_json(io.StringIO(data), orient="split")
 
-        df_masked, samples = create_mcar_data(df.copy())
+        # df_masked, samples = create_mcar_data(df.copy())
+        df_masked, samples = mask_data(df.copy(), masking)
         imputation_error = evaluate(df, df_masked, samples)
         imputed_data, energy = impute_original_data(df)
 
@@ -319,7 +336,7 @@ def visualize_energy_consumption(data):
                     dcc.Graph(figure=fig_time),
                     dcc.Graph(figure=fig_co2),
                     dcc.Graph(figure=fig_consump),
-                ]
+                ],
             ),
         ]
     )

@@ -82,6 +82,22 @@ def create_mcar_data(df, missing=0.2, seed=42):
     return df_masked, samples
 
 
+def create_time_gap_data(df, missing=0.2, bsize=24, seed=42):
+    np.random.seed(seed)
+    df_masked = df.copy()
+    threshold = int(len(df) * missing)
+    blocks = np.maximum(1, threshold // bsize)
+    samples = np.zeros(df.shape, dtype=bool)
+
+    for _ in range(blocks):
+        x = np.random.randint(0, len(df) - bsize)
+        y = x + bsize
+        df_masked.iloc[x:y, :] = np.nan
+        samples[x:y, :] = True
+
+    return df_masked, samples
+
+
 def evaluate_imputation(df, df_masked, samples, method):
     if method == "Linear Regression":
         df_imputed = impute_data(df_masked, method, df)
@@ -118,3 +134,10 @@ def impute_data(df, method=None, df_true=None):
         return linear_regression(df, df_true)
     elif method == "LightGBM":
         return lightgbm(df)
+
+
+def mask_data(df, method=None):
+    if method == "MCAR (Random Missingness)":
+        return create_mcar_data(df)
+    elif method == "Block Missingness (Time Gaps)":
+        return create_time_gap_data(df)

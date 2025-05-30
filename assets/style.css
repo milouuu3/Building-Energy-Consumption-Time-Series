@@ -1,16 +1,19 @@
 body {
-  font-family: sans-serif;
+  background: linear-gradient(135deg, #f9f9f9 0%, #e1ecf4 100%);
+  font-family: "Helvetica Neue", Arial, sans-serif;
+  color: #333333;
+  margin: 0;
+  padding: 0;
 }
 
 h1,
 h2,
 h3,
 h4 {
-  color: #26313b;
+  color: #3d52a0;
   text-align: center;
-  font-size: 24px;
-  font-weight: 500;
-  margin: 5px;
+  margin: 10px 0;
+  font-weight: 600;
 }
 
 h2,
@@ -19,106 +22,110 @@ h4 {
   text-align: left;
 }
 
-h5 {
-  color: #26313b;
-}
-
+h5,
 p {
-  color: red;
+  color: #4a4a4a;
+  line-height: 1.5;
 }
 
 button {
-  background-color: white;
-  border: 1.8px solid grey;
-  border-radius: 8px;
-  padding: 12px 24px;
-  max-width: 600px;
+  background-color: #3d52a0;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 20px;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 16px;
   cursor: pointer;
-  text-align: center;
-  margin: 12px;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #003f66;
 }
 
 .app-container {
-  padding: 40px 20px;
+  padding: 30px;
+  max-width: 1200px;
+  margin: auto;
 }
 
 .app-header {
   text-align: center;
-  font-size: 32px;
-  font-weight: 600;
+  font-size: 36px;
+  font-weight: 700;
   padding-bottom: 20px;
-  border-bottom: 2px solid lightgrey;
-  margin-bottom: 30px;
+  border-bottom: 2px solid rgba(0, 87, 146, 0.3);
+  margin-bottom: 40px;
+  color: #3d52a0;
 }
 
 .app-header--title {
-  color: #26313b;
+  font-size: 42px;
+  font-weight: 700;
+  color: #3d52a0;
 }
 
 .Select-control {
   background-color: #ffffff;
-  border-radius: 4px;
-  font-size: 12px;
-  color: #26313b;
-  padding: 6px;
-  margin: 10px;
+  border-radius: 8px;
+  font-size: 14px;
+  padding: 8px;
+  margin: 10px 0;
 }
 
 .tabs-container {
-  width: 85%;
-  margin-top: 10px;
+  width: 90%;
+  margin: 20px auto;
 }
 
 .class-tabs {
-  border-top-left-radius: 3px;
-  background-color: #ffffff;
-  padding: 0px 24px;
-  border-bottom: 1px solid lightgrey;
+  background-color: #f0f8ff;
+  border-bottom: 2px solid #3d52a0 !important;
 }
 
 .class-tab {
-  color: #26313b;
+  color: #3d52a0 !important;
+  padding: 12px 20px;
+  font-weight: 600;
+  cursor: pointer;
   border-top-left-radius: 3px;
   border-top-right-radius: 3px;
-  border-top: 3px solid transparent !important;
-  border-left: 0px !important;
-  border-right: 0px !important;
   border-bottom: 0px !important;
-  background-color: #fafbfc;
-  padding: 12px !important;
   display: flex !important;
   align-items: center;
   justify-content: center;
 }
 
 .tab--selected {
-  color: #26313b;
-  box-shadow: 1px 1px 0px white;
-  border-left: 1px solid lightgrey !important;
-  border-right: 1px solid lightgrey !important;
-  border-top: 4px solid #26313b !important;
+  background-color: #3d52a03d !important;
+  color: #ffffff !important;
+  border-top: 4px solid #3d52a0 !important;
 }
 
 .class-upload {
-  border: 1px solid #ccc;
-  display: inline-block;
-  padding: 6px 12px;
+  background-color: #3d52a0;
+  color: #ffffff;
+  padding: 8px 16px;
+  border-radius: 6px;
   cursor: pointer;
   margin-left: 10px;
 }
 
 .dash-table-container {
-  color: #feda6a;
-  background-color: #1d1e22 !important;
+  margin-top: 20px;
+  border: 1px solid #3d52a0;
 }
 
 .dash-cell {
-  color: #1d1e22;
-  background-color: #d4d4dc !important;
-  padding: 4px !important;
+  background-color: #f9f9f9 !important;
+  color: #333333;
+  padding: 8px !important;
 }
 
 .dash-header {
-  background-color: #393f4d !important;
+  background-color: #3d52a0 !important;
+  color: #ffffff !important;
   font-weight: bold !important;
+  padding: 10px !important;
 }
