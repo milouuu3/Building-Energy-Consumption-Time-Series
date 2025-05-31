@@ -1,17 +1,17 @@
-from dash import Dash, html, dcc, dash_table, Output, Input, State, callback
 import plotly.express as px
+import base64
+import io
+import pandas as pd
+import eco2ai
+import time
+from codecarbon import EmissionsTracker
+from dash import Dash, html, dcc, dash_table, Output, Input, State, callback
 from imputation import (
     evaluate_imputation,
     impute_data,
     mask_data,
 )
 from forecasting import forecast_data, plot_forecast
-import base64
-import io
-import pandas as pd
-import eco2ai
-from codecarbon import EmissionsTracker
-import time
 
 methods = [
     "LOCF",
@@ -20,7 +20,6 @@ methods = [
     "Linear Regression",
     "LightGBM",
 ]
-
 
 app = Dash()
 
@@ -33,15 +32,6 @@ app.layout = html.Div(
                 html.H1("Building Energy Consumption Time Series", className="app-header--title")
             ],
         ),
-        # Dataset upload
-        html.H2(children="Upload Building Energy Consumption Dataset"),
-        dcc.Upload(
-            id="upload-data",
-            children=html.Div(html.A("Select CSV File")),
-            multiple=False,
-            accept=".csv",
-            className="class-upload",
-        ),
         # Store dataset
         dcc.Store(id="store-dataset"),
         dcc.Store(id="store-imputed-dataset"),
@@ -53,9 +43,83 @@ app.layout = html.Div(
             parent_className="class-tabs",
             className="tabs-container",
             children=[
+                # framework README
+                dcc.Tab(
+                    label="0.1 Info",
+                    children=[
+                        html.H2("About this framework"),
+                        html.P("This is the purpose.."),
+                        html.H3("Supported Imputation Methods"),
+                        html.Ul(
+                            [
+                                html.Li(
+                                    "LOCF (Last Observation Carried Forward): Fills missing values with the last known value."
+                                ),
+                                html.Li(
+                                    "NOCB (Next Observation Carried Backward): Fills missing vallues with the next known value."
+                                ),
+                                html.Li(
+                                    "Linear Interpolation: Estimates values by drawing a straight line between two known data points."
+                                ),
+                                html.Li(
+                                    "Linear Regression: Predicts missing values using linear models trained on observed data."
+                                ),
+                                html.Li(
+                                    "LightGBM: Very efficient gradient boosting framework based on decision trees. Designed for speed and performance."
+                                ),
+                            ]
+                        ),
+                        html.H3("How to use this tool?"),
+                        html.Ol(
+                            [
+                                html.Li(
+                                    [
+                                        "Upload your ",
+                                        html.Strong("time series "),
+                                        "building energy consumption dataset (only ",
+                                        html.Strong("CSV "),
+                                        "files are allowed)",
+                                    ]
+                                ),
+                                html.Li(
+                                    "Select a masking method to evaluate imputation performance."
+                                ),
+                                html.Li(
+                                    "Run the imputation to generate imputed datasets and error metrics."
+                                ),
+                                html.Li(
+                                    "Review energy consumption and emissions corresponded with each imputation method."
+                                ),
+                                html.Li(
+                                    "Use the forecasting tab to predict future energy consumption for specific buildings."
+                                ),
+                            ]
+                        ),
+                        html.H3("References"),
+                        html.P("Bsc Thesis"),
+                    ],
+                    className="class-tab",
+                    selected_className="tab--selected",
+                ),
+                # Dataset upload
+                dcc.Tab(
+                    label="1. Upload Dataset",
+                    children=[
+                        html.H2("Upload Building Energy Consumption Dataset"),
+                        dcc.Upload(
+                            id="upload-data",
+                            children=html.Div(html.A("Select CSV File")),
+                            multiple=False,
+                            accept=".csv",
+                            className="class-upload",
+                        ),
+                    ],
+                    className="class-tab",
+                    selected_className="tab--selected",
+                ),
                 # Dataset level imputation
                 dcc.Tab(
-                    label="Dataset Imputation Evaluation",
+                    label="2. Dataset Imputation",
                     children=[
                         dcc.Dropdown(
                             id="dropdown-masking",
@@ -85,14 +149,14 @@ app.layout = html.Div(
                 ),
                 # Computation Energy Consumption (per method)
                 dcc.Tab(
-                    label="Computational Energy Consumption",
+                    label="3. Computational Energy Consumption",
                     children=html.Div(id="computational-energy-consumption"),
                     className="class-tab",
                     selected_className="tab--selected",
                 ),
                 # Forecasting building level
                 dcc.Tab(
-                    label="Forecasting Building Energy Consumption",
+                    label="4. Forecasting Building Energy Consumption",
                     children=[
                         dcc.Dropdown(
                             id="dropdown-imputation-method",
@@ -115,8 +179,9 @@ app.layout = html.Div(
 
 
 def preprocess_data(df: pd.DataFrame):
-    # Find and set the timestamp column as index if possible
+    """Preprocesses the dataset uploaded by the user."""
     for col in df.columns:
+        # Find and set the timestamp column as index if possible
         if df[col].dtype == "object":
             try:
                 df[col] = pd.to_datetime(df[col])
@@ -124,7 +189,7 @@ def preprocess_data(df: pd.DataFrame):
                 break
             except Exception as e:
                 print(e)
-    # Filter only numeric columns
+    # Only keep numeric columns
     df = df.select_dtypes(include="number")
     return df.sort_index()
 
@@ -248,7 +313,6 @@ def run_imputation(n_clicks, data, masking):
     if n_clicks and data and masking:
         df = pd.read_json(io.StringIO(data), orient="split")
 
-        # df_masked, samples = create_mcar_data(df.copy())
         df_masked, samples = mask_data(df.copy(), masking)
         imputation_error = evaluate(df, df_masked, samples)
         imputed_data, energy = impute_original_data(df)

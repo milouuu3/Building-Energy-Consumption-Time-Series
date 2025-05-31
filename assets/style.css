@@ -1,6 +1,6 @@
 body {
   background: linear-gradient(135deg, #f9f9f9 0%, #e1ecf4 100%);
-  font-family: "Helvetica Neue", Arial, sans-serif;
+  font-family: sans-serif, Arial, Helvetica;
   color: #333333;
   margin: 0;
   padding: 0;
@@ -37,7 +37,7 @@ button {
   font-weight: 600;
   font-size: 16px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  margin-bottom: 15px;
 }
 
 button:hover {
@@ -66,17 +66,19 @@ button:hover {
   color: #3d52a0;
 }
 
+/* Dropdown menu */
 .Select-control {
   background-color: #ffffff;
-  border-radius: 8px;
-  font-size: 14px;
-  padding: 8px;
-  margin: 10px 0;
+  max-width: 600px;
+  padding: 5px;
+  text-align: left;
+  display: block;
+  margin-bottom: 20px;
 }
 
 .tabs-container {
   width: 90%;
-  margin: 20px auto;
+  margin-bottom: 20px;
 }
 
 .class-tabs {
@@ -106,10 +108,11 @@ button:hover {
 .class-upload {
   background-color: #3d52a0;
   color: #ffffff;
-  padding: 8px 16px;
-  border-radius: 6px;
   cursor: pointer;
-  margin-left: 10px;
+  display: block;
+  padding: 10px 15px;
+  max-width: 400px;
+  margin: 10px auto;
 }
 
 .dash-table-container {
