@@ -36,19 +36,41 @@ app.layout = html.Div(
         dcc.Store(id="store-dataset"),
         dcc.Store(id="store-imputed-dataset"),
         dcc.Store(id="store-energy"),
-        html.Div(id="output-data-upload"),
+        html.Div(
+            dcc.Loading(
+                id="loading-upload",
+                children=html.Div(id="output-data-upload"),
+                type="default",
+            )
+        ),
         # Create extra tabs for differen viewing levels
         dcc.Tabs(
             id="id-tabs",
             parent_className="class-tabs",
             className="tabs-container",
             children=[
-                # framework README
+                # Framework README/inof tab
                 dcc.Tab(
                     label="0.1 Info",
                     children=[
                         html.H2("About this framework"),
-                        html.P("This is the purpose.."),
+                        html.P(
+                            "This application is designed to analyze different building energy consumption time series datasets. "
+                            "It provides various imputation techniques and includes an option to forecast the imputed data to predict future energy consumption. "
+                            "In addition, the computational energy consumption tab presents the environmental impact and energy efficiency of the different imputation methods, using CodeCarbon and eco2AI. "
+                            "This allows the user to consider both the accuracy and sustainability of their imputation methods."
+                        ),
+                        html.H3("Supported Data Masking Methods"),
+                        html.Ul(
+                            [
+                                html.Li(
+                                    "MCAR (Missing Completely at Random): Randomly masks 20% of all data points."
+                                ),
+                                html.Li(
+                                    "Block masking (Time Gaps): Introduces missing values in a form of continuous time blocks. This simulates scenarious such as equipment failure."
+                                ),
+                            ]
+                        ),
                         html.H3("Supported Imputation Methods"),
                         html.Ul(
                             [
@@ -96,7 +118,9 @@ app.layout = html.Div(
                             ]
                         ),
                         html.H3("References"),
-                        html.P("Bsc Thesis"),
+                        html.P(
+                            "This framework is developed as part of a Bachelor thesis on Missing value imputation on building energy consumption time series data."
+                        ),
                     ],
                     className="class-tab",
                     selected_className="tab--selected",
@@ -133,7 +157,13 @@ app.layout = html.Div(
                             ],
                         ),
                         html.Button("Run", id="button-run-dataset", n_clicks=0),
-                        html.Div(id="dataset-results"),
+                        html.Div(
+                            dcc.Loading(
+                                id="loading-imputation",
+                                children=html.Div(id="dataset-results"),
+                                type="default",
+                            )
+                        ),
                         # Download imputed data button
                         html.H2("Download Imputed Data"),
                         dcc.Dropdown(
@@ -167,7 +197,11 @@ app.layout = html.Div(
                         dcc.Slider(1, 30, 1, value=7, id="slider-lags"),
                         html.Br(),
                         html.Button("Run forecast", id="button-run-forecast"),
-                        dcc.Graph(id="plot-forecasting"),
+                        dcc.Loading(
+                            id="loading-forecasting",
+                            children=dcc.Graph(id="plot-forecasting"),
+                            type="default",
+                        ),
                     ],
                     className="class-tab",
                     selected_className="tab--selected",

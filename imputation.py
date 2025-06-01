@@ -82,18 +82,22 @@ def create_mcar_data(df, missing=0.2, seed=42):
     return df_masked, samples
 
 
-def create_time_gap_data(df, missing=0.2, bsize=24, seed=42):
+def create_time_gap_data(df, bcount=3, bsize=24, seed=42):
     np.random.seed(seed)
     df_masked = df.copy()
-    threshold = int(len(df) * missing)
-    blocks = np.maximum(1, threshold // bsize)
     samples = np.zeros(df.shape, dtype=bool)
 
-    for _ in range(blocks):
-        x = np.random.randint(0, len(df) - bsize)
+    for _ in range(bcount):
+        # Select arbitrary starting index
+        x = np.random.randint(0, len(df) - bsize + 1)
         y = x + bsize
-        df_masked.iloc[x:y, :] = np.nan
-        samples[x:y, :] = True
+        mask_col = np.random.choice(
+            df.columns, size=np.random.randint(1, df.shape[1] + 1), replace=False
+        )
+        # Select subset of columns to mask
+        cols = [df.columns.get_loc(i) for i in mask_col]
+        df_masked.iloc[x:y, cols] = np.nan
+        samples[x:y, cols] = True
 
     return df_masked, samples
 
@@ -114,10 +118,10 @@ def evaluate_imputation(df, df_masked, samples, method):
         y_true = y_true[valid]
         y_pred = y_pred[valid]
 
-        mae = np.round(mean_absolute_error(y_true, y_pred), 2)
-        mse = np.round(mean_squared_error(y_true, y_pred), 2)
-        rmse = np.round(np.sqrt(mse), 2)
-        nrmse = np.round(rmse / (np.max(y_true) - np.min(y_true)), 2)
+        mae = mean_absolute_error(y_true, y_pred)
+        mse = mean_squared_error(y_true, y_pred)
+        rmse = np.sqrt(mse)
+        nrmse = rmse / (np.max(y_true) - np.min(y_true))
 
         errors[col] = {"MAE": mae, "MSE": mse, "RMSE": rmse, "NRMSE": nrmse}
     return errors
