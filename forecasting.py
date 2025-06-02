@@ -1,5 +1,5 @@
-from lightgbm import LGBMRegressor
 import plotly.graph_objs as go
+from lightgbm import LGBMRegressor
 
 
 def create_lags(df, col, n_lags=7):

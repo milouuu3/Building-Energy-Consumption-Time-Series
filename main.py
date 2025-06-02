@@ -151,11 +151,12 @@ app.layout = html.Div(
                             options=[
                                 {"label": i, "value": i}
                                 for i in [
-                                    "MCAR (Random Missingness)",
-                                    "Block Missingness (Time Gaps)",
+                                    "Missing Completely at Random",
+                                    "Fixed Interval",
                                 ]
                             ],
                         ),
+                        dcc.Slider(24, 168, 24, value=24, id="slider-interval"),
                         html.Button("Run", id="button-run-dataset", n_clicks=0),
                         html.Div(
                             dcc.Loading(
@@ -342,15 +343,20 @@ def impute_original_data(df):
     Input("button-run-dataset", "n_clicks"),
     State("store-dataset", "data"),
     State("dropdown-masking", "value"),
+    State("slider-interval", "value"),
 )
-def run_imputation(n_clicks, data, masking):
+def run_imputation(n_clicks, data, masking, interval):
     if n_clicks and data and masking:
         df = pd.read_json(io.StringIO(data), orient="split")
 
-        df_masked, samples = mask_data(df.copy(), masking)
+        # Apply chosen masking method
+        if masking == "Missing Completely at Random":
+            df_masked, samples = mask_data(df.copy(), masking)
+        else:
+            df_masked, samples = mask_data(df.copy(), masking, interval)
+
         imputation_error = evaluate(df, df_masked, samples)
         imputed_data, energy = impute_original_data(df)
-
         return imputation_error, imputed_data, energy
 
     return html.Div(html.H5("Click run to start evaluation")), None, None

@@ -1,7 +1,7 @@
+import numpy as np
 from sklearn.linear_model import LinearRegression
 from lightgbm import LGBMRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error
-import numpy as np
 
 
 def locf(df):
@@ -82,23 +82,10 @@ def create_mcar_data(df, missing=0.2, seed=42):
     return df_masked, samples
 
 
-def create_time_gap_data(df, bcount=3, bsize=24, seed=42):
-    np.random.seed(seed)
+def create_interval_data(df, interval=24):
     df_masked = df.copy()
-    samples = np.zeros(df.shape, dtype=bool)
-
-    for _ in range(bcount):
-        # Select arbitrary starting index
-        x = np.random.randint(0, len(df) - bsize + 1)
-        y = x + bsize
-        mask_col = np.random.choice(
-            df.columns, size=np.random.randint(1, df.shape[1] + 1), replace=False
-        )
-        # Select subset of columns to mask
-        cols = [df.columns.get_loc(i) for i in mask_col]
-        df_masked.iloc[x:y, cols] = np.nan
-        samples[x:y, cols] = True
-
+    df_masked.iloc[::interval, :] = np.nan
+    samples = df_masked.isna().values
     return df_masked, samples
 
 
@@ -140,8 +127,8 @@ def impute_data(df, method=None, df_true=None):
         return lightgbm(df)
 
 
-def mask_data(df, method=None):
-    if method == "MCAR (Random Missingness)":
+def mask_data(df, method, interval=None):
+    if method == "Missing Completely at Random":
         return create_mcar_data(df)
-    elif method == "Block Missingness (Time Gaps)":
-        return create_time_gap_data(df)
+    elif method == "Fixed Interval":
+        return create_interval_data(df, interval=interval)
