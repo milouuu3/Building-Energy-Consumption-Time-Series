@@ -16,35 +16,30 @@ def linear_interpolation(df):
     return df.interpolate(method="linear", limit_direction="both")
 
 
-def linear_regression(df_masked, df_true=None):
-    df_imputed = df_masked.copy()
+def linear_regression(df):
+    df_imputed = df.copy()
 
-    for col in df_masked.columns:
-        # Get the masked samples
-        if df_true is not None:
-            masked = df_masked[col].isna() & df_true[col].notna()
-        else:
-            masked = df_masked[col].isna()
+    for col in df.columns:
+        missing = df[col].isna()
+        not_missing = df[col].notna()
 
-        not_missing = df_masked[col].notna()
-
-        if masked.sum() == 0:
+        if missing.sum() == 0:
             continue
 
-        X = df_masked.drop(col, axis=1)
-        y = df_masked[col]
+        X = df.drop(col, axis=1)
+        y = df[col]
 
-        X_train = X.loc[not_missing].dropna()
-        y_train = y.loc[X_train.index]
-        X_pred = X.loc[masked].dropna()
+        Xf = X.fillna(X.mean())
 
-        if X_train.empty or X_pred.empty:
-            continue
+        X_train = Xf.loc[not_missing]
+        y_train = y.loc[not_missing]
+        X_pred = Xf.loc[missing]
 
         model = LinearRegression()
         model.fit(X_train, y_train)
         y_pred = model.predict(X_pred)
-        df_imputed.loc[X_pred.index, col] = y_pred
+
+        df_imputed.loc[missing, col] = y_pred
 
     return df_imputed
 
@@ -82,6 +77,20 @@ def create_mcar_data(df, missing=0.2, seed=42):
     return df_masked, samples
 
 
+def create_timegap_data(df, gap_size=4, n=1, missing=0.2, seed=42):
+    df_masked = df.copy()
+    rng = np.random.default_rng(seed)
+    threshold = np.maximum(1, int(df.shape[1] * missing))
+
+    for _ in range(n):
+        x = rng.integers(0, np.maximum(df.shape[0] - gap_size, 1))
+        mask = rng.choice(df.columns, threshold, replace=False)
+        df_masked.loc[df.index[x : x + gap_size], mask] = np.nan
+
+    samples = df_masked.isna().values
+    return df_masked, samples
+
+
 def create_interval_data(df, interval=24):
     df_masked = df.copy()
     df_masked.iloc[::interval, :] = np.nan
@@ -90,10 +99,7 @@ def create_interval_data(df, interval=24):
 
 
 def evaluate_imputation(df, df_masked, samples, method):
-    if method == "Linear Regression":
-        df_imputed = impute_data(df_masked, method, df)
-    else:
-        df_imputed = impute_data(df_masked, method)
+    df_imputed = impute_data(df_masked, method)
 
     errors = {}
     for i, col in enumerate(df.columns):
@@ -114,7 +120,7 @@ def evaluate_imputation(df, df_masked, samples, method):
     return errors
 
 
-def impute_data(df, method=None, df_true=None):
+def impute_data(df, method=None):
     if method == "LOCF":
         return locf(df)
     elif method == "NOCB":
@@ -122,13 +128,15 @@ def impute_data(df, method=None, df_true=None):
     elif method == "Linear Interpolation":
         return linear_interpolation(df)
     elif method == "Linear Regression":
-        return linear_regression(df, df_true)
+        return linear_regression(df)
     elif method == "LightGBM":
         return lightgbm(df)
 
 
-def mask_data(df, method, interval=None):
+def mask_data(df, method):
     if method == "Missing Completely at Random":
         return create_mcar_data(df)
-    elif method == "Fixed Interval":
-        return create_interval_data(df, interval=interval)
+    elif method == "Time Gap Masking":
+        return create_timegap_data(df)
+    else:
+        return create_interval_data(df)

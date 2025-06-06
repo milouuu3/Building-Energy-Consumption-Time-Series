@@ -21,6 +21,10 @@ methods = [
     "LightGBM",
 ]
 
+fmethods = ["Linear Regression", "LightGBM"]
+
+mask_methods = ["Missing Completely at Random", "Time Gap Masking", "Fixed Interval Masking"]
+
 app = Dash()
 
 app.layout = html.Div(
@@ -67,8 +71,9 @@ app.layout = html.Div(
                                     "MCAR (Missing Completely at Random): Randomly masks 20% of all data points."
                                 ),
                                 html.Li(
-                                    "Block masking (Time Gaps): Introduces missing values in a form of continuous time blocks. This simulates scenarious such as equipment failure."
+                                    "Time Gap masking: Introduces missing values in a form of continuous time blocks. This simulates scenarious such as equipment failure."
                                 ),
+                                html.Li("Fixed interval: TODO"),
                             ]
                         ),
                         html.H3("Supported Imputation Methods"),
@@ -148,15 +153,8 @@ app.layout = html.Div(
                         dcc.Dropdown(
                             id="dropdown-masking",
                             placeholder="Select Masking Method",
-                            options=[
-                                {"label": i, "value": i}
-                                for i in [
-                                    "Missing Completely at Random",
-                                    "Fixed Interval",
-                                ]
-                            ],
+                            options=[{"label": i, "value": i} for i in mask_methods],
                         ),
-                        dcc.Slider(24, 168, 24, value=24, id="slider-interval"),
                         html.Button("Run", id="button-run-dataset", n_clicks=0),
                         html.Div(
                             dcc.Loading(
@@ -195,6 +193,11 @@ app.layout = html.Div(
                             options=[{"label": i, "value": i} for i in methods],
                         ),
                         dcc.Dropdown(id="dropdown-building", placeholder="Select Building Column"),
+                        dcc.Dropdown(
+                            id="dropdown-forecasting-method",
+                            placeholder="Select Forecasting Method",
+                            options=[{"label": m, "value": m} for m in fmethods],
+                        ),
                         dcc.Slider(1, 30, 1, value=7, id="slider-lags"),
                         html.Br(),
                         html.Button("Run forecast", id="button-run-forecast"),
@@ -225,8 +228,9 @@ def preprocess_data(df: pd.DataFrame):
             except Exception as e:
                 print(e)
     # Only keep numeric columns
-    df = df.select_dtypes(include="number")
-    return df.sort_index()
+    df_num = df.select_dtypes(include="number")
+
+    return df_zscaled.sort_index()
 
 
 def parse_contents(contents, filename):
@@ -343,9 +347,8 @@ def impute_original_data(df):
     Input("button-run-dataset", "n_clicks"),
     State("store-dataset", "data"),
     State("dropdown-masking", "value"),
-    State("slider-interval", "value"),
 )
-def run_imputation(n_clicks, data, masking, interval):
+def run_imputation(n_clicks, data, masking):
     if n_clicks and data and masking:
         df = pd.read_json(io.StringIO(data), orient="split")
 
@@ -353,7 +356,7 @@ def run_imputation(n_clicks, data, masking, interval):
         if masking == "Missing Completely at Random":
             df_masked, samples = mask_data(df.copy(), masking)
         else:
-            df_masked, samples = mask_data(df.copy(), masking, interval)
+            df_masked, samples = mask_data(df.copy(), masking)
 
         imputation_error = evaluate(df, df_masked, samples)
         imputed_data, energy = impute_original_data(df)
@@ -384,8 +387,9 @@ def get_data(imputed_data, method):
     State("dropdown-building", "value"),
     State("slider-lags", "value"),
     State("dropdown-imputation-method", "value"),
+    State("dropdown-forecasting-method", "value"),
 )
-def run_forecast(n_clicks, imputed_data, col, n_lags, method):
+def run_forecast(n_clicks, imputed_data, col, n_lags, method, fmethod):
     if n_clicks and imputed_data and method:
         df = imputed_data.get(method)
         if df is None:
@@ -393,7 +397,7 @@ def run_forecast(n_clicks, imputed_data, col, n_lags, method):
             return None
 
         df_imputed = pd.read_json(io.StringIO(df), orient="split")
-        y_test, y_pred = forecast_data(df_imputed, col, n_lags)
+        y_test, y_pred = forecast_data(df_imputed, col, fmethod, n_lags)
         return plot_forecast(y_test, y_pred)
     return None
 

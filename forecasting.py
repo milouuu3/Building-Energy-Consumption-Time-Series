@@ -1,5 +1,6 @@
 import plotly.graph_objs as go
 from lightgbm import LGBMRegressor
+from sklearn.linear_model import LinearRegression
 
 
 def create_lags(df, col, n_lags=7):
@@ -16,7 +17,7 @@ def split_data(X, y, train_size=0.8):
     return X_train, X_test, y_train, y_test
 
 
-def forecast_data(df, col, n_lags=7, train_size=0.8):
+def forecast_data(df, col, method, n_lags=7, train_size=0.8):
     df_lags = create_lags(df, col, n_lags=n_lags)
 
     X = df_lags.drop(columns=[col])
@@ -24,7 +25,10 @@ def forecast_data(df, col, n_lags=7, train_size=0.8):
 
     X_train, X_test, y_train, y_test = split_data(X, y, train_size=train_size)
 
-    model = LGBMRegressor(force_col_wise=True)
+    if method == "Linear Regression":
+        model = LinearRegression()
+    else:
+        model = LGBMRegressor(force_col_wise=True)
 
     model.fit(X_train, y_train)
     y_pred = model.predict(X_test)
