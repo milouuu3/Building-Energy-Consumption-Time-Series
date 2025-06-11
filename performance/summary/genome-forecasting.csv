@@ -1,0 +1,71 @@
+Method,MAE
+LOCF,0.080844
+NOCB,0.075557
+Linear Interpolation,0.063491
+Linear Regression,0.064169
+LightGBM,0.072242
+LOCF,42.006153
+NOCB,46.266762
+Linear Interpolation,40.84511
+Linear Regression,38.758556
+LightGBM,35.011598
+LOCF,2.310868
+NOCB,2.155769
+Linear Interpolation,2.188631
+Linear Regression,2.010237
+LightGBM,2.081118
+LOCF,11.411214
+NOCB,10.916363
+Linear Interpolation,10.757996
+Linear Regression,9.619381
+LightGBM,9.200309
+LOCF,0.309034
+NOCB,0.364091
+Linear Interpolation,0.313211
+Linear Regression,0.457153
+LightGBM,0.331165
+LOCF,13.394667
+NOCB,12.620615
+Linear Interpolation,12.471133
+Linear Regression,9.993743
+LightGBM,9.811126
+LOCF,30.039282
+NOCB,35.026387
+Linear Interpolation,27.527182
+Linear Regression,26.190512
+LightGBM,23.2606
+LOCF,1.018437
+NOCB,1.125387
+Linear Interpolation,1.172328
+Linear Regression,0.977072
+LightGBM,0.992148
+LOCF,2.509622
+NOCB,2.469226
+Linear Interpolation,2.349439
+Linear Regression,2.061066
+LightGBM,2.016291
+LOCF,5.36614
+NOCB,7.561195
+Linear Interpolation,5.933628
+Linear Regression,4.912526
+LightGBM,5.329729
+LOCF,30.676622
+NOCB,35.955762
+Linear Interpolation,29.93348
+Linear Regression,20.602762
+LightGBM,25.691159
+LOCF,3.492878
+NOCB,3.023805
+Linear Interpolation,2.696845
+Linear Regression,2.486638
+LightGBM,2.169422
+LOCF,1.131822
+NOCB,1.159128
+Linear Interpolation,1.05845
+Linear Regression,1.043876
+LightGBM,0.915093
+LOCF,6.470779
+NOCB,6.491089
+Linear Interpolation,5.971105
+Linear Regression,5.428234
+LightGBM,5.295598

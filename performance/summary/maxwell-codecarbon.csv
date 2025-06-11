@@ -1,0 +1,46 @@
+Method,Runtime,CO2 emissions,Energy Consumption
+LOCF,2.146262,2e-06,7e-06
+NOCB,2.140309,2e-06,7e-06
+Linear Interpolation,2.153124,2e-06,7e-06
+Linear Regression,2.161133,2e-06,7e-06
+LightGBM,2.295647,2e-06,9e-06
+LOCF,2.144306,2e-06,7e-06
+NOCB,2.144209,2e-06,7e-06
+Linear Interpolation,2.176181,2e-06,7e-06
+Linear Regression,2.167028,2e-06,7e-06
+LightGBM,2.341669,3e-06,9e-06
+LOCF,2.147179,2e-06,7e-06
+NOCB,2.144063,2e-06,7e-06
+Linear Interpolation,2.195452,2e-06,7e-06
+Linear Regression,2.785548,6e-06,2.1e-05
+LightGBM,4.20908,7e-06,2.8e-05
+LOCF,2.149042,1.811271e-06,7e-06
+NOCB,2.140738,1.601052e-08,7e-06
+Linear Interpolation,2.15705,1.61678e-08,7e-06
+Linear Regression,2.181175,1.847021e-06,7e-06
+LightGBM,2.483786,2.915758e-08,1.2e-05
+LOCF,2.149031,2e-06,7e-06
+NOCB,2.141284,2e-06,7e-06
+Linear Interpolation,2.157855,2e-06,7e-06
+Linear Regression,2.180326,2e-06,7e-06
+LightGBM,2.426251,3e-06,1.1e-05
+LOCF,2.14236,2e-06,7e-06
+NOCB,2.141422,2e-06,7e-06
+Linear Interpolation,2.159368,2e-06,7e-06
+Linear Regression,2.233859,2e-06,7e-06
+LightGBM,2.823554,4e-06,1.6e-05
+LOCF,2.142878,1.804356e-06,7e-06
+NOCB,2.14114,1.802873e-06,7e-06
+Linear Interpolation,2.165708,1.625253e-08,7e-06
+Linear Regression,2.226219,1.896349e-06,7e-06
+LightGBM,2.782336,3.859225e-06,1.4e-05
+LOCF,2.140023,2e-06,7e-06
+NOCB,2.142305,2e-06,7e-06
+Linear Interpolation,2.151179,2e-06,7e-06
+Linear Regression,2.169629,2e-06,8e-06
+LightGBM,2.372708,3e-06,1e-05
+LOCF,2.149838,1.84173e-06,7e-06
+NOCB,2.140826,1.802367e-06,7e-06
+Linear Interpolation,2.165623,1.829632e-06,7e-06
+Linear Regression,2.217223,2.419373e-06,9e-06
+LightGBM,2.560971,3.124147e-08,1.3e-05
