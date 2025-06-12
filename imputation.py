@@ -1,7 +1,11 @@
 import numpy as np
+import pandas as pd
 from sklearn.linear_model import LinearRegression
 from lightgbm import LGBMRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error
+from sklearn.impute import KNNImputer
+from sklearn.experimental import enable_iterative_imputer
+from sklearn.impute import IterativeImputer
 
 
 def locf(df):
@@ -14,6 +18,18 @@ def nocb(df):
 
 def linear_interpolation(df):
     return df.interpolate(method="linear", limit_direction="both")
+
+
+def knn(df, n=5):
+    imputer = KNNImputer(n_neighbors=n)
+    df_imputed = pd.DataFrame(imputer.fit_transform(df), columns=df.columns)
+    return df_imputed
+
+
+def mice(df, seed=42):
+    imputer = IterativeImputer(random_state=seed)
+    df_imputed = pd.DataFrame(imputer.fit_transform(df), columns=df.columns)
+    return df_imputed
 
 
 def linear_regression(df):

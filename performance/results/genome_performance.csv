@@ -1,0 +1,99 @@
+method,site,target,dataset,NRMSE,MAE
+LOCF,Panther,Panther_retail_Gilbert,genome,0.04883968738086161,0.0907742398404247
+NOCB,Panther,Panther_retail_Gilbert,genome,0.04522303585049581,0.08668150875164643
+Linear Interpolation,Panther,Panther_retail_Gilbert,genome,0.03479107383403228,0.05403908050309597
+Linear Regression,Panther,Panther_retail_Gilbert,genome,0.06993749341064583,0.07360743682981849
+K-Nearest Neighbor,Panther,Panther_retail_Gilbert,genome,0.032880587113991624,0.047238474665241816
+MICE,Panther,Panther_retail_Gilbert,genome,0.05551127200496829,0.06026244176884829
+LightGBM,Panther,Panther_retail_Gilbert,genome,0.033051576162337976,0.043035053018626285
+LOCF,Robin,Robin_education_Derick,genome,23.471700196353435,0.043901839979700666
+NOCB,Robin,Robin_education_Derick,genome,22.528038502523835,0.038515213630503024
+Linear Interpolation,Robin,Robin_education_Derick,genome,12.123315979622358,0.025622270926794016
+Linear Regression,Robin,Robin_education_Derick,genome,54.37691193417302,0.08655187427441449
+K-Nearest Neighbor,Robin,Robin_education_Derick,genome,23.199481648906335,0.04515152290770687
+MICE,Robin,Robin_education_Derick,genome,61.237077946406494,0.09086361784873942
+LightGBM,Robin,Robin_education_Derick,genome,32.561430476986146,0.05535249142625737
+LOCF,Fox,Fox_education_Charles,genome,1.377876336318983,0.04929234147827065
+NOCB,Fox,Fox_education_Charles,genome,1.3769864201097948,0.04850445046403769
+Linear Interpolation,Fox,Fox_education_Charles,genome,0.9621698449388423,0.03364641640578634
+Linear Regression,Fox,Fox_education_Charles,genome,2.021376873601482,0.06184165651149729
+K-Nearest Neighbor,Fox,Fox_education_Charles,genome,1.4019676394105753,0.0489082133727254
+MICE,Fox,Fox_education_Charles,genome,1.8395096892140932,0.05900761228536218
+LightGBM,Fox,Fox_education_Charles,genome,1.5012019842559554,0.05180107099983413
+LOCF,Bear,Bear_education_Mara,genome,8.159948256827425,0.04725365597051512
+NOCB,Bear,Bear_education_Mara,genome,8.340805257043275,0.048955406440542866
+Linear Interpolation,Bear,Bear_education_Mara,genome,4.053805491127616,0.023405372402877267
+Linear Regression,Bear,Bear_education_Mara,genome,14.83353422602733,0.07166486003805653
+K-Nearest Neighbor,Bear,Bear_education_Mara,genome,8.466905954109787,0.04555239184593622
+MICE,Bear,Bear_education_Mara,genome,13.993607869056008,0.0672412263330505
+LightGBM,Bear,Bear_education_Mara,genome,9.673479504381037,0.049504037959257736
+LOCF,Lamb,Lamb_office_Peggy,genome,0.363972335468841,0.06928119581319056
+NOCB,Lamb,Lamb_office_Peggy,genome,0.3653102213162493,0.07193547321816902
+Linear Interpolation,Lamb,Lamb_office_Peggy,genome,0.20553777560529163,0.03569748297822994
+Linear Regression,Lamb,Lamb_office_Peggy,genome,0.6477404897250882,0.0728311183769647
+K-Nearest Neighbor,Lamb,Lamb_office_Peggy,genome,0.3009133488642982,0.05154158467155748
+MICE,Lamb,Lamb_office_Peggy,genome,0.5158701552203329,0.06009783039707783
+LightGBM,Lamb,Lamb_office_Peggy,genome,0.29075870611961013,0.04641157954107604
+LOCF,Peacock,Peacock_education_Bianca,genome,9.342300850785339,0.08309455684431986
+NOCB,Peacock,Peacock_education_Bianca,genome,10.001458862001309,0.09204837688843706
+Linear Interpolation,Peacock,Peacock_education_Bianca,genome,8.129967468933943,0.06964345550569805
+Linear Regression,Peacock,Peacock_education_Bianca,genome,10.061898736698643,0.08293073354836701
+K-Nearest Neighbor,Peacock,Peacock_education_Bianca,genome,9.646898456507522,0.08298799684946534
+MICE,Peacock,Peacock_education_Bianca,genome,10.001947865706596,0.0828387368696871
+LightGBM,Peacock,Peacock_education_Bianca,genome,8.997528333222789,0.07778061605566447
+LOCF,Moose,Moose_education_Florence,genome,31.69441949658703,0.10792200467827152
+NOCB,Moose,Moose_education_Florence,genome,30.65038148464164,0.10253592096145907
+Linear Interpolation,Moose,Moose_education_Florence,genome,12.732347379124002,0.03676652962053842
+Linear Regression,Moose,Moose_education_Florence,genome,39.024144188659804,0.08856013174223228
+K-Nearest Neighbor,Moose,Moose_education_Florence,genome,26.111555511945394,0.07016513018866884
+MICE,Moose,Moose_education_Florence,genome,31.39186999910241,0.07330868846403692
+LightGBM,Moose,Moose_education_Florence,genome,19.29123528062843,0.04960598062513711
+LOCF,Gator,Gator_public_Marissa,genome,0.09682538799414349,0.0313142492524951
+NOCB,Gator,Gator_public_Marissa,genome,0.09245446559297217,0.029988069266792927
+Linear Interpolation,Gator,Gator_public_Marissa,genome,0.08697516642264518,0.021085691600859192
+Linear Regression,Gator,Gator_public_Marissa,genome,1.5614208113901282,0.09659573975333759
+K-Nearest Neighbor,Gator,Gator_public_Marissa,genome,0.007232784773060028,0.00361214691976539
+MICE,Gator,Gator_public_Marissa,genome,1.577293801214388,0.09682936294524423
+LightGBM,Gator,Gator_public_Marissa,genome,0.4332282275676012,0.03193888225412295
+LOCF,Bull,Bull_education_Bryon,genome,2.61262050832603,0.037717245929874
+NOCB,Bull,Bull_education_Bryon,genome,2.6503067484662575,0.03869483730078209
+Linear Interpolation,Bull,Bull_education_Bryon,genome,1.5527513282530438,0.025244513214127972
+Linear Regression,Bull,Bull_education_Bryon,genome,2.030831390108249,0.023400939200543164
+K-Nearest Neighbor,Bull,Bull_education_Bryon,genome,1.612737364884604,0.022415545103344783
+MICE,Bull,Bull_education_Bryon,genome,1.8818789232097715,0.022109957907905632
+LightGBM,Bull,Bull_education_Bryon,genome,1.5808765000320044,0.0192089440122149
+LOCF,Bobcat,Bobcat_office_Melody,genome,2.734783561151079,0.0488663692490343
+NOCB,Bobcat,Bobcat_office_Melody,genome,2.60858726618705,0.04635185964777769
+Linear Interpolation,Bobcat,Bobcat_office_Melody,genome,1.898691130695444,0.034381951068090846
+Linear Regression,Bobcat,Bobcat_office_Melody,genome,6.643051582228291,0.08712554681215744
+K-Nearest Neighbor,Bobcat,Bobcat_office_Melody,genome,4.708834575539568,0.06866026956608409
+MICE,Bobcat,Bobcat_office_Melody,genome,6.531398802427706,0.08752097997683414
+LightGBM,Bobcat,Bobcat_office_Melody,genome,3.6836281234905393,0.05277372383352272
+LOCF,Crow,Crow_education_Omer,genome,28.028568923076925,0.06771695521804554
+NOCB,Crow,Crow_education_Omer,genome,28.180710461538464,0.06742880016331818
+Linear Interpolation,Crow,Crow_education_Omer,genome,12.419002256410257,0.029913940576829393
+Linear Regression,Crow,Crow_education_Omer,genome,47.20542650609748,0.09054561442739575
+K-Nearest Neighbor,Crow,Crow_education_Omer,genome,50.99423528828179,0.09478988884205237
+MICE,Crow,Crow_education_Omer,genome,42.092840951343106,0.08199486765909236
+LightGBM,Crow,Crow_education_Omer,genome,32.466237317852226,0.06440845667113007
+LOCF,Swan,Swan_unknown_Bette,genome,3.3453357851722125,0.047670985331059415
+NOCB,Swan,Swan_unknown_Bette,genome,3.0196101576182137,0.03463745253176055
+Linear Interpolation,Swan,Swan_unknown_Bette,genome,1.6636743734795398,0.026740323442739737
+Linear Regression,Swan,Swan_unknown_Bette,genome,3.170639548833399,0.04406450293092295
+K-Nearest Neighbor,Swan,Swan_unknown_Bette,genome,2.345704039696439,0.022716303063628093
+MICE,Swan,Swan_unknown_Bette,genome,2.8108932979875694,0.05187679418354929
+LightGBM,Swan,Swan_unknown_Bette,genome,2.123028344921184,0.022118775696045406
+LOCF,Wolf,Wolf_education_Roderick,genome,1.117128146453089,0.12985696726681978
+NOCB,Wolf,Wolf_education_Roderick,genome,1.1002409897025172,0.12787448805698162
+Linear Interpolation,Wolf,Wolf_education_Roderick,genome,0.8503951693091425,0.09033630497350496
+Linear Regression,Wolf,Wolf_education_Roderick,genome,1.568700035292913,0.12978373541373778
+K-Nearest Neighbor,Wolf,Wolf_education_Roderick,genome,0.9720680778032036,0.09946323358991538
+MICE,Wolf,Wolf_education_Roderick,genome,1.3922550991175482,0.1176878276524513
+LightGBM,Wolf,Wolf_education_Roderick,genome,0.9451140331438574,0.09342153729931404
+LOCF,Cockatoo,Cockatoo_lodging_Cletus,genome,5.8349371541501975,0.07722825823134177
+NOCB,Cockatoo,Cockatoo_lodging_Cletus,genome,5.867540802675585,0.07795890392484943
+Linear Interpolation,Cockatoo,Cockatoo_lodging_Cletus,genome,4.047214832546333,0.05316350748149321
+Linear Regression,Cockatoo,Cockatoo_lodging_Cletus,genome,6.371866392371164,0.08017707095671854
+K-Nearest Neighbor,Cockatoo,Cockatoo_lodging_Cletus,genome,5.129796308908483,0.06658128951697179
+MICE,Cockatoo,Cockatoo_lodging_Cletus,genome,5.93646106105366,0.07658729871299481
+LightGBM,Cockatoo,Cockatoo_lodging_Cletus,genome,5.034916332244097,0.0647135715627465
