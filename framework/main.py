@@ -1,9 +1,9 @@
-import plotly.express as px
 import base64
 import io
-import pandas as pd
 import eco2ai
 import time
+import pandas as pd
+import plotly.express as px
 from codecarbon import EmissionsTracker
 from dash import Dash, html, dcc, dash_table, Output, Input, State, callback
 from imputation import (
