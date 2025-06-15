@@ -127,6 +127,10 @@ def evaluate_imputation(df, df_masked, samples, method):
         y_true = y_true[valid]
         y_pred = y_pred[valid]
 
+        if len(y_true) == 0 or len(y_pred) == 0:
+            print(f"Error: '{col}' with '{method}'")
+            continue
+
         mae = mean_absolute_error(y_true, y_pred)
         mse = mean_squared_error(y_true, y_pred)
         rmse = np.sqrt(mse)

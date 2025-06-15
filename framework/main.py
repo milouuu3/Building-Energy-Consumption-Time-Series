@@ -1,7 +1,6 @@
 import base64
 import io
 import eco2ai
-import time
 import pandas as pd
 import plotly.express as px
 from codecarbon import EmissionsTracker
@@ -53,7 +52,7 @@ app.layout = html.Div(
             parent_className="class-tabs",
             className="tabs-container",
             children=[
-                # Framework README/inof tab
+                # Framework info tab
                 dcc.Tab(
                     label="0.1 Info",
                     children=[
@@ -178,7 +177,7 @@ app.layout = html.Div(
                 ),
                 # Computation Energy Consumption (per method)
                 dcc.Tab(
-                    label="3. Computational Energy Consumption",
+                    label="3. Computational Cost",
                     children=html.Div(id="computational-energy-consumption"),
                     className="class-tab",
                     selected_className="tab--selected",
@@ -193,6 +192,11 @@ app.layout = html.Div(
                             options=[{"label": i, "value": i} for i in methods],
                         ),
                         dcc.Dropdown(id="dropdown-building", placeholder="Select Building Column"),
+                        dcc.Dropdown(
+                            id="dropdown-input-features",
+                            placeholder="Select Input Features",
+                            multi=True,
+                        ),
                         dcc.Dropdown(
                             id="dropdown-forecasting-method",
                             placeholder="Select Forecasting Method",
@@ -227,10 +231,10 @@ def preprocess_data(df: pd.DataFrame):
                 break
             except Exception as e:
                 print(e)
+
     # Only keep numeric columns
     df_num = df.select_dtypes(include="number")
-
-    return df_zscaled.sort_index()
+    return df_num.sort_index()
 
 
 def parse_contents(contents, filename):
@@ -264,36 +268,50 @@ def update_output(content, names):
 
 
 def evaluate(df, df_masked, samples):
-    imputation_error = []
+    plot_error = []
+
     for method in methods:
         print(f"Imputing with {method}")
         try:
             # First impute on masked data and get error
             error = evaluate_imputation(df.copy(), df_masked.copy(), samples, method)
-            df_error = pd.DataFrame(error)
-            df_error = df_error.reset_index()
 
-            imputation_error.append(
-                html.Div(
-                    [
-                        html.H4(f"Error metrics for {method}"),
-                        dash_table.DataTable(
-                            data=df_error.to_dict("records"),
-                            columns=[{"name": i, "id": i} for i in df_error.columns],
-                        ),
-                    ]
+            for c, m in error.items():
+                plot_error.append(
+                    {
+                        "Method": method,
+                        "Column": c,
+                        "MAE": m["MAE"],
+                        "MSE": m["MSE"],
+                        "RMSE": m["RMSE"],
+                        "NRMSE": m["NRMSE"],
+                    }
                 )
-            )
         except Exception as e:
-            imputation_error.append(
-                html.Div(
-                    [
-                        html.H4(f"Error metrics for {method}"),
-                        html.P(f"Error: {e}"),
-                    ],
-                )
+            print(e)
+    return plot_error
+
+
+def create_plot_error(data):
+    if data:
+        df = pd.DataFrame(data)
+        df = df.groupby("Method").mean(numeric_only=True).reset_index()
+        cols = [col for col in df.columns if col not in ["Method", "Column"]]
+        figs = []
+
+        for i in cols:
+            f = px.bar(
+                df,
+                x="Method",
+                y=i,
+                title=f"{i} per method",
+                log_y=True,
+                labels={i: i},
+                color="Method",
             )
-    return imputation_error
+            figs.append(dcc.Graph(figure=f))
+        return html.Div([html.H3("Imputation Error per Metric"), *figs])
+    return None
 
 
 def impute_original_data(df):
@@ -304,34 +322,34 @@ def impute_original_data(df):
         try:
             # Setup the tracking for emissions, consumption and runtime
             eco2ai_tracker = eco2ai.Tracker(
-                project_name=f"eco2ai_{method}", file_name="eco2ai.csv"
+                project_name=f"eco2ai_{method}", file_name="framework/eco2ai.csv"
             )
             codecarbon_tracker = EmissionsTracker(
-                project_name=f"codecarbon_{method}", output_file="codecarbon.csv"
+                project_name=f"codecarbon_{method}",
+                output_file="codecarbon.csv",
+                output_dir="framework",
             )
 
             eco2ai_tracker.start()
             codecarbon_tracker.start()
-            start = time.time()
 
             df_imputed = impute_data(df.copy(), method)
 
-            end = time.time()
             codecarbon_tracker.stop()
             eco2ai_tracker.stop()
 
-            df_eco2ai = pd.read_csv("eco2ai.csv")
-            df_codecarbon = pd.read_csv("codecarbon.csv")
+            df_eco2ai = pd.read_csv("framework/eco2ai.csv")
+            df_codecarbon = pd.read_csv("framework/codecarbon.csv")
 
             codecarbon_measurements = df_codecarbon.iloc[-1]
             eco2ai_measurements = df_eco2ai.iloc[-1]
 
-            elapsed_time = end - start
             imputed_data[method] = df_imputed.to_json(orient="split")
             energy[method] = {
-                "Runtime (seconds)": elapsed_time,
+                "CodeCarbon Runtime (seconds)": codecarbon_measurements["duration"],
                 "CodeCarbon Emissions (kg)": codecarbon_measurements["emissions"],
                 "CodeCarbon Energy (kWh)": codecarbon_measurements["energy_consumed"],
+                "eco2AI Runtime (seconds)": eco2ai_measurements["duration(s)"],
                 "eco2AI Emissions (kg)": eco2ai_measurements["CO2_emissions(kg)"],
                 "eco2AI Energy (kWh)": eco2ai_measurements["power_consumption(kWh)"],
             }
@@ -358,26 +376,29 @@ def run_imputation(n_clicks, data, masking):
         else:
             df_masked, samples = mask_data(df.copy(), masking)
 
-        imputation_error = evaluate(df, df_masked, samples)
+        plot_error = evaluate(df, df_masked, samples)
+        figs = create_plot_error(plot_error)
         imputed_data, energy = impute_original_data(df)
-        return imputation_error, imputed_data, energy
+        return figs, imputed_data, energy
 
     return html.Div(html.H5("Click run to start evaluation")), None, None
 
 
 @callback(
     Output("dropdown-building", "options"),
+    Output("dropdown-input-features", "options"),
     Input("store-imputed-dataset", "data"),
     Input("dropdown-imputation-method", "value"),
 )
 def get_data(imputed_data, method):
     if not imputed_data or not method:
-        return []
+        return [], []
     data = imputed_data.get(method)
     if not data:
-        return []
+        return [], []
     df_imputed = pd.read_json(io.StringIO(data), orient="split")
-    return [{"label": i, "value": i} for i in df_imputed.columns]
+    val = [{"label": i, "value": i} for i in df_imputed.columns]
+    return val, val
 
 
 @callback(
@@ -385,11 +406,12 @@ def get_data(imputed_data, method):
     Input("button-run-forecast", "n_clicks"),
     State("store-imputed-dataset", "data"),
     State("dropdown-building", "value"),
+    State("dropdown-input-features", "value"),
     State("slider-lags", "value"),
     State("dropdown-imputation-method", "value"),
     State("dropdown-forecasting-method", "value"),
 )
-def run_forecast(n_clicks, imputed_data, col, n_lags, method, fmethod):
+def run_forecast(n_clicks, imputed_data, target, input_features, n_lags, method, fmethod):
     if n_clicks and imputed_data and method:
         df = imputed_data.get(method)
         if df is None:
@@ -397,7 +419,7 @@ def run_forecast(n_clicks, imputed_data, col, n_lags, method, fmethod):
             return None
 
         df_imputed = pd.read_json(io.StringIO(df), orient="split")
-        y_test, y_pred = forecast_data(df_imputed, col, fmethod, n_lags)
+        y_test, y_pred = forecast_data(df_imputed, target, input_features, fmethod, n_lags)
         return plot_forecast(y_test, y_pred)
     return None
 
@@ -410,6 +432,11 @@ def visualize_energy_consumption(data):
     # Melt the measurements columns from CodeCarbon and eco2AI together per metric
     df = pd.DataFrame.from_dict(data, orient="index").reset_index()
     df.rename(columns={"index": "Method"}, inplace=True)
+    df_time = df.melt(
+        id_vars="Method",
+        value_vars=["CodeCarbon Runtime (seconds)", "eco2AI Runtime (seconds)"],
+        value_name="Runtime (seconds)",
+    )
     df_co2 = df.melt(
         id_vars="Method",
         value_vars=["CodeCarbon Emissions (kg)", "eco2AI Emissions (kg)"],
@@ -422,30 +449,39 @@ def visualize_energy_consumption(data):
     )
 
     # Create bar figures
-    fig_time = px.bar(df, x="Method", y="Runtime (seconds)", title="Runtime per method")
+    fig_time = px.bar(
+        df_time,
+        x="Method",
+        y="Runtime (seconds)",
+        title="Runtime per method",
+        log_y=True,
+        color="variable",
+        barmode="group",
+    )
     fig_co2 = px.bar(
-        df_co2, x="Method", y="Emissions (kg)", title="CO2 Emissions per method and tracker"
+        df_co2,
+        x="Method",
+        y="Emissions (kg)",
+        title="CO2 Emissions per method and tracker",
+        log_y=True,
+        color="variable",
+        barmode="group",
     )
     fig_consump = px.bar(
         df_consump,
         x="Method",
         y="Energy Consumption (kWh)",
         title="Energy Consumption per method and tracker",
+        log_y=True,
+        color="variable",
+        barmode="group",
     )
 
     return html.Div(
         [
-            dash_table.DataTable(
-                data=df.to_dict("records"),
-                columns=[{"name": i, "id": i} for i in df.columns],
-            ),
-            html.Div(
-                [
-                    dcc.Graph(figure=fig_time),
-                    dcc.Graph(figure=fig_co2),
-                    dcc.Graph(figure=fig_consump),
-                ],
-            ),
+            dcc.Graph(figure=fig_time),
+            dcc.Graph(figure=fig_co2),
+            dcc.Graph(figure=fig_consump),
         ]
     )
 
