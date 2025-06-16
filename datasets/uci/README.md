@@ -1,4 +1,4 @@
-## Download the Household Electric Power Consumption dataset:
+## Download the Household Electric Power Consumption dataset
 https://www.kaggle.com/datasets/mexwell/household-load-and-solar-generation
 
 ## Used in experiments:
