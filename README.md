@@ -63,7 +63,6 @@ This Dash-based framework is designed to impute, analyze and forecast building e
 Open your terminal:
 - **Linux** (recommended): `Ctrl+Alt+T`
 - **macOS**: `Cmd + Space`, then type `terminal`, and press `Enter`
-- **Windows**: `Win + R`, then type `cmd` or `powershell`, and press `Enter`
 
 ## 1 Clone the repository
 `git clone git@github.com:milouuu3/Building-Energy-Consumption-Time-Series.git`
