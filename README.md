@@ -26,3 +26,5 @@ This Dash-based framework is designed to impute, analyze and forecast building e
 
 ## Getting Started
 ### 1. Clone the repository
+git clone git@github.com:milouuu3/Building-Energy-Consumption-Time-Series.git
+cd Building-Energy-Consumption-Time-Series
