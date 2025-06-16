@@ -1,6 +1,24 @@
 # Building-Energy-Consumption-Time-Series
 This repository contains the experiment notebooks and framework for my bachelor thesis about Imputation on Building Energy Time Series Time Series data.
 
+# Experiments
+- Masked by MCAR (20%)
+- Run on Linux
+
+## Imputation Techniques
+    - Last Observation Carried Forward (LOCF)
+    - Next Observation Carried Backwards (NOCB)
+    - Linear Interpolation
+    - Multiple Imputation by Chained Equation (MICE)
+    - Linear Regression
+    - K-Nearest Neighbor (KNN)
+    - LightGBM
+
+## Datasets
+- https://www.kaggle.com/datasets/mexwell/household-load-and-solar-generation
+- https://www.kaggle.com/datasets/uciml/electric-power-consumption-data-set/data
+- https://www.kaggle.com/datasets/claytonmiller/buildingdatagenomeproject2/data
+
 # Framework
 This Dash-based framework is designed to impute, analyze and forecast building energy consumption time series data.
 
@@ -24,23 +42,6 @@ This Dash-based framework is designed to impute, analyze and forecast building e
 - Forecasting
     - Predict future building energy consumption with either a LightGBM or Linear Regression model
 
-# Experiments
-- Masked by MCAR (20%)
-
-## Imputation Techniques
-    - Last Observation Carried Forward (LOCF)
-    - Next Observation Carried Backwards (NOCB)
-    - Linear Interpolation
-    - Multiple Imputation by Chained Equation (MICE)
-    - Linear Regression
-    - K-Nearest Neighbor (KNN)
-    - LightGBM
-
-## Datasets
-- https://www.kaggle.com/datasets/mexwell/household-load-and-solar-generation
-- https://www.kaggle.com/datasets/uciml/electric-power-consumption-data-set/data
-- https://www.kaggle.com/datasets/claytonmiller/buildingdatagenomeproject2/data
-
 # Getting Started
 ## 0.1 Overview of necessary Python libraries
     - CodeCarbon
@@ -52,7 +53,13 @@ This Dash-based framework is designed to impute, analyze and forecast building e
     - Pandas
     - Scikit-Learn
 
-## 1. Clone the repository
+## 0.2 Open your terminal
+Open your terminal:
+- **Linux** (recommended): `Ctrl+Alt+T`
+- **macOS**: `Cmd + Space`, then type `terminal`, and press `Enter`
+- **Windows**: `Win + R`, then type `cmd` or `powershell`, and press `Enter`
+
+## 1 Clone the repository
 `git clone git@github.com:milouuu3/Building-Energy-Consumption-Time-Series.git`
 
 ## 2. Navigate to this folder
@@ -63,3 +70,6 @@ Type `./setup.sh` in your terminal
 
 ## 3.2 Run the 'run' bash file to start the application
 Type `./run.sh` in your terminal
+
+## 4 To quit the application
+Hold `Ctrl + C`
