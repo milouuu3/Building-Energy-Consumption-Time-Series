@@ -1,4 +1,5 @@
 # Building-Energy-Consumption-Time-Series
+This repository contains the experiment notebooks and framework for the thesis.
 
 # Framework
 This Dash-based framework is designed to impute, analyze and forecast building energy consumption time series data.
