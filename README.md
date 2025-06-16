@@ -3,9 +3,10 @@ This repository contains the experiment notebooks and framework for my bachelor 
 
 # Experiments
 - Masked by MCAR (20%)
-- Run on Linux
+- Experiments were run on Ubuntu 24.04.2 LTS
+- Used Error metrics: MAE and NRMSE
 
-## Imputation Techniques
+## Used Imputation Techniques
     - Last Observation Carried Forward (LOCF)
     - Next Observation Carried Backwards (NOCB)
     - Linear Interpolation
@@ -24,19 +25,24 @@ This Dash-based framework is designed to impute, analyze and forecast building e
 
 ## Features
 - Upload your own building energy time series dataset (in CSV format)
-- Imputation Techniques
+- Available Imputation Techniques
     - Last Observation Carried Forward (LOCF)
     - Next Observation Carried Backwards (NOCB)
     - Linear Interpolation
     - Linear Regression
     - LightGBM
 - Evaluation
+    - Different Masking Techniques
+        - MCAR (Random)
+        - Time Gap masking (Continuous Block)
+        - Fixed Interval masking (Regular Intervals)
     - Error metrics available
         - Mean Absolute Error (MAE)
         - Mean Squared Error (MSE)
         - Root Mean Squared Error (RMSE)
         - Normalized Root Mean Squared Error (NRMSE)
     - Visual plots available for comparison between imputation techniques
+- Imputed data can be downloaded for downstream use
 - Sustainability
     - Track the runtime, energy usage and CO2 emissions of each imputation method
 - Forecasting
@@ -62,7 +68,7 @@ Open your terminal:
 ## 1 Clone the repository
 `git clone git@github.com:milouuu3/Building-Energy-Consumption-Time-Series.git`
 
-## 2. Navigate to this folder
+## 2 Navigate to this folder
 `cd Building-Energy-Consumption-Time-Series`
 
 ## 3.1 Run the 'setup' bash file to install all dependencies
