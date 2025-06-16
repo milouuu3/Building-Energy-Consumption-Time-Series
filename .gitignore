@@ -1,4 +1,4 @@
-datasets
+*.csv
+*.txt
+datasets/plots/
 __pycache__
-codecarbon.csv
-eco2ai.csv

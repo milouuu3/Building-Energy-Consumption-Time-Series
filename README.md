@@ -26,6 +26,7 @@ This Dash-based framework is designed to impute, analyze and forecast building e
 
 # Experiments
 - Masked by MCAR (20%)
+
 ## Imputation Techniques
     - Last Observation Carried Forward (LOCF)
     - Next Observation Carried Backwards (NOCB)
@@ -34,13 +35,14 @@ This Dash-based framework is designed to impute, analyze and forecast building e
     - Linear Regression
     - K-Nearest Neighbor (KNN)
     - LightGBM
+
 ## Datasets
 - https://www.kaggle.com/datasets/mexwell/household-load-and-solar-generation
 - https://www.kaggle.com/datasets/uciml/electric-power-consumption-data-set/data
-- https://www.kaggle.com/datasets/claytonmiller/buildingdatagenomeproject2/code?datasetId=787828&searchQuery=time+series
+- https://www.kaggle.com/datasets/claytonmiller/buildingdatagenomeproject2/data
 
 # Getting Started
-## 0.1 Install Necessary Python Libraries
+## 0.1 Overview of necessary Python libraries
     - CodeCarbon
     - Dash
     - Jupyter Notebook
@@ -56,5 +58,8 @@ git clone git@github.com:milouuu3/Building-Energy-Consumption-Time-Series.git
 ## 2. Navigate to this folder
 cd Building-Energy-Consumption-Time-Series
 
-## 3. Run the bash file
+## 3.1 Run the 'setup' bash file to install all dependencies
+./setup.sh
+
+## 3.2 Run the 'run' bash file to start the application
 ./run.sh
