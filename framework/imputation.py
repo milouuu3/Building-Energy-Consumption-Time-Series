@@ -85,7 +85,7 @@ def lightgbm(df):
     return df_imputed
 
 
-def create_mcar_data(df, missing=0.2, seed=42):
+def create_mcar_data(df, missing=0.1, seed=42):
     rng = np.random.default_rng(seed)
     samples = rng.uniform(0, 1, size=df.shape) < missing
     df_masked = df.copy()
@@ -93,24 +93,29 @@ def create_mcar_data(df, missing=0.2, seed=42):
     return df_masked, samples
 
 
-def create_timegap_data(df, gap_size=4, n=1, missing=0.2, seed=42):
+def create_timegap_data(df, missing=0.1, seed=42):
     df_masked = df.copy()
     rng = np.random.default_rng(seed)
-    threshold = np.maximum(1, int(df.shape[1] * missing))
+    samples = np.zeros_like(df_masked.values, dtype=bool)
 
-    for _ in range(n):
-        x = rng.integers(0, np.maximum(df.shape[0] - gap_size, 1))
-        mask = rng.choice(df.columns, threshold, replace=False)
-        df_masked.loc[df.index[x : x + gap_size], mask] = np.nan
+    col = rng.choice(df.columns)
+    size = np.maximum(1, int(missing * len(df)))
 
-    samples = df_masked.isna().values
+    for col in df.columns:
+        i = df.columns.get_loc(col)
+        start = rng.integers(0, len(df) - size)
+        df_masked.iloc[start : start + size, i] = np.nan
+        samples[start : start + size, i] = True
+
     return df_masked, samples
 
 
 def create_interval_data(df, interval=24):
     df_masked = df.copy()
-    df_masked.iloc[::interval, :] = np.nan
-    samples = df_masked.isna().values
+    samples = np.zeros_like(df_masked.values, dtype=bool)
+
+    df_masked.values[::interval, :] = np.nan
+    samples[::interval, :] = True
     return df_masked, samples
 
 
@@ -153,10 +158,10 @@ def impute_data(df, method=None):
         return lightgbm(df)
 
 
-def mask_data(df, method):
+def mask_data(df, method, missing=0.2):
     if method == "Missing Completely at Random":
-        return create_mcar_data(df)
+        return create_mcar_data(df, missing=missing)
     elif method == "Time Gap Masking":
-        return create_timegap_data(df)
+        return create_timegap_data(df, missing=missing)
     else:
         return create_interval_data(df)

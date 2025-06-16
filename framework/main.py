@@ -1,17 +1,18 @@
-import base64
 import io
+import base64
 import eco2ai
 import pandas as pd
 import plotly.express as px
 from codecarbon import EmissionsTracker
-from dash import Dash, html, dcc, dash_table, Output, Input, State, callback
+from dash import Dash, html, dcc, Output, Input, State, callback
+from forecasting import forecast_data, plot_forecast
 from imputation import (
     evaluate_imputation,
     impute_data,
     mask_data,
 )
-from forecasting import forecast_data, plot_forecast
 
+# Imputation Methods
 methods = [
     "LOCF",
     "NOCB",
@@ -20,10 +21,13 @@ methods = [
     "LightGBM",
 ]
 
+# Forecasting Models
 fmethods = ["Linear Regression", "LightGBM"]
 
+# Masking Methods
 mask_methods = ["Missing Completely at Random", "Time Gap Masking", "Fixed Interval Masking"]
 
+# Dash Setup
 app = Dash()
 
 app.layout = html.Div(
@@ -67,12 +71,16 @@ app.layout = html.Div(
                         html.Ul(
                             [
                                 html.Li(
-                                    "MCAR (Missing Completely at Random): Randomly masks 20% of all data points."
+                                    "MCAR (Missing Completely at Random): Randomly masks 20% (by default) of all data points."
                                 ),
                                 html.Li(
-                                    "Time Gap masking: Introduces missing values in a form of continuous time blocks. This simulates scenarious such as equipment failure."
+                                    "Time Gap masking: Introduces missing values in a form of continuous time blocks."
+                                    "This simulates scenarious such as equipment failure."
+                                    "One block will be masking 20% (by default) of every column of the time series data."
                                 ),
-                                html.Li("Fixed interval: TODO"),
+                                html.Li(
+                                    "Fixed interval: Introduces missing values at a regular interval across all columns"
+                                ),
                             ]
                         ),
                         html.H3("Supported Imputation Methods"),
@@ -114,10 +122,14 @@ app.layout = html.Div(
                                     "Run the imputation to generate imputed datasets and error metrics."
                                 ),
                                 html.Li(
+                                    "For downstream use, the non-masked imputed data can be downloaded by selecting the desired method and clicking the download button."
+                                ),
+                                html.Li(
                                     "Review energy consumption and emissions corresponded with each imputation method."
                                 ),
                                 html.Li(
-                                    "Use the forecasting tab to predict future energy consumption for specific buildings."
+                                    "Use the forecasting tab to predict future energy consumption for specific buildings "
+                                    "by choosing target and input features."
                                 ),
                             ]
                         ),
@@ -149,10 +161,21 @@ app.layout = html.Div(
                 dcc.Tab(
                     label="2. Dataset Imputation",
                     children=[
+                        html.H2("Masking"),
                         dcc.Dropdown(
                             id="dropdown-masking",
                             placeholder="Select Masking Method",
                             options=[{"label": i, "value": i} for i in mask_methods],
+                        ),
+                        html.H3(
+                            "Masking Percentage (Only applicable for MCAR and Time Gap masking)"
+                        ),
+                        dcc.Input(
+                            min=0,
+                            max=100,
+                            value=20,
+                            id="input-missing",
+                            placeholder="Enter the percentage of data you want to mask...",
                         ),
                         html.Button("Run", id="button-run-dataset", n_clicks=0),
                         html.Div(
@@ -186,23 +209,28 @@ app.layout = html.Div(
                 dcc.Tab(
                     label="4. Forecasting Building Energy Consumption",
                     children=[
+                        html.H2("Select Imputed Data"),
                         dcc.Dropdown(
                             id="dropdown-imputation-method",
                             placeholder="Select Imputation Method",
                             options=[{"label": i, "value": i} for i in methods],
                         ),
+                        html.H2("Target Variable"),
                         dcc.Dropdown(id="dropdown-building", placeholder="Select Building Column"),
+                        html.H2("Input Feature(s)"),
                         dcc.Dropdown(
                             id="dropdown-input-features",
                             placeholder="Select Input Features",
                             multi=True,
                         ),
+                        html.H2("Forecasting Model"),
                         dcc.Dropdown(
                             id="dropdown-forecasting-method",
                             placeholder="Select Forecasting Method",
                             options=[{"label": m, "value": m} for m in fmethods],
                         ),
-                        dcc.Slider(1, 30, 1, value=7, id="slider-lags"),
+                        html.H2("Lag Variable(s)"),
+                        dcc.Input(min=0, max=168, step=1, value=0, id="input-lags"),
                         html.Br(),
                         html.Button("Run forecast", id="button-run-forecast"),
                         dcc.Loading(
@@ -221,7 +249,7 @@ app.layout = html.Div(
 
 
 def preprocess_data(df: pd.DataFrame):
-    """Preprocesses the dataset uploaded by the user."""
+    """Preprocesses the dataset uploaded by the user"""
     for col in df.columns:
         # Find and set the timestamp column as index if possible
         if df[col].dtype == "object":
@@ -234,6 +262,8 @@ def preprocess_data(df: pd.DataFrame):
 
     # Only keep numeric columns
     df_num = df.select_dtypes(include="number")
+
+    # Sort index by date
     return df_num.sort_index()
 
 
@@ -262,12 +292,24 @@ def update_output(content, names):
         if div:
             return None, div
         else:
+            warning = None
+            # If there are columns with missing values over 50%, warn the user
+            if (df.isna().mean() > 0.5).any():
+                warning = html.Div(
+                    html.P(
+                        "Warning: there are column(s) in your dataset that contain more than 50% missing values. "
+                        "This may influence the imputation/forecasting performance and even cause imputation to fail for certain methods.",
+                    ),
+                    className="warning",
+                )
+
             data = df.to_json(orient="split")
-            return data, html.Div(html.H5(f"Succesfully uploaded: {names}"))
+            return data, html.Div([warning, html.H5(f"Succesfully uploaded: {names}")])
     return None, html.Div(html.H5("No file uploaded yet..."))
 
 
 def evaluate(df, df_masked, samples):
+    """Impute the masked data and compute error metrics for plots"""
     plot_error = []
 
     for method in methods:
@@ -293,6 +335,7 @@ def evaluate(df, df_masked, samples):
 
 
 def create_plot_error(data):
+    """Creates an error metric plot for all methods available"""
     if data:
         df = pd.DataFrame(data)
         df = df.groupby("Method").mean(numeric_only=True).reset_index()
@@ -315,6 +358,7 @@ def create_plot_error(data):
 
 
 def impute_original_data(df):
+    """Impute only on the original data, no masking"""
     imputed_data = {}
     energy = {}
 
@@ -365,20 +409,20 @@ def impute_original_data(df):
     Input("button-run-dataset", "n_clicks"),
     State("store-dataset", "data"),
     State("dropdown-masking", "value"),
+    State("input-missing", "value"),
 )
-def run_imputation(n_clicks, data, masking):
+def run_imputation(n_clicks, data, masking, missing):
+    """Runs both imputation rounds and stores it as json data"""
     if n_clicks and data and masking:
         df = pd.read_json(io.StringIO(data), orient="split")
 
         # Apply chosen masking method
-        if masking == "Missing Completely at Random":
-            df_masked, samples = mask_data(df.copy(), masking)
-        else:
-            df_masked, samples = mask_data(df.copy(), masking)
+        df_masked, samples = mask_data(df.copy(), masking, missing / 100)
 
         plot_error = evaluate(df, df_masked, samples)
         figs = create_plot_error(plot_error)
         imputed_data, energy = impute_original_data(df)
+
         return figs, imputed_data, energy
 
     return html.Div(html.H5("Click run to start evaluation")), None, None
@@ -391,6 +435,7 @@ def run_imputation(n_clicks, data, masking):
     Input("dropdown-imputation-method", "value"),
 )
 def get_data(imputed_data, method):
+    """Generate features list for uploaded dataset"""
     if not imputed_data or not method:
         return [], []
     data = imputed_data.get(method)
@@ -407,11 +452,12 @@ def get_data(imputed_data, method):
     State("store-imputed-dataset", "data"),
     State("dropdown-building", "value"),
     State("dropdown-input-features", "value"),
-    State("slider-lags", "value"),
+    State("input-lags", "value"),
     State("dropdown-imputation-method", "value"),
     State("dropdown-forecasting-method", "value"),
 )
 def run_forecast(n_clicks, imputed_data, target, input_features, n_lags, method, fmethod):
+    """Runs the forecast with the given parameters and returns the True vs Predicted plot"""
     if n_clicks and imputed_data and method:
         df = imputed_data.get(method)
         if df is None:
@@ -426,6 +472,7 @@ def run_forecast(n_clicks, imputed_data, target, input_features, n_lags, method,
 
 @callback(Output("computational-energy-consumption", "children"), Input("store-energy", "data"))
 def visualize_energy_consumption(data):
+    """Creates the computational plots compared per metric"""
     if not data:
         return html.Div(html.H5("No measurements available yet..."))
 
@@ -494,6 +541,7 @@ def visualize_energy_consumption(data):
     prevent_initial_call=True,
 )
 def download_data(n_clicks, data, method):
+    """Function to download imputed data of the requested method by the user"""
     if n_clicks and data and method:
         data = data.get(method)
         if not data:

@@ -20,12 +20,14 @@ h2,
 h3,
 h4 {
   text-align: left;
+  margin: 15px;
 }
 
 h5,
 p {
   color: #4a4a4a;
   line-height: 1.5;
+  margin: 15px;
 }
 
 button {
@@ -37,11 +39,16 @@ button {
   font-weight: 600;
   font-size: 16px;
   cursor: pointer;
-  margin-bottom: 15px;
+  margin: 15px;
 }
 
 button:hover {
   background-color: #003f66;
+}
+
+input {
+  padding: 5px 5px;
+  margin: 15px;
 }
 
 .app-container {
@@ -66,6 +73,13 @@ button:hover {
   color: #3d52a0;
 }
 
+.warning {
+  padding: 20px;
+  background-color: #e02517;
+  margin: 15px auto;
+  max-width: 800px;
+}
+
 /* Dropdown menu */
 .Select-control {
   background-color: #ffffff;
@@ -73,7 +87,7 @@ button:hover {
   padding: 5px;
   text-align: left;
   display: block;
-  margin-bottom: 20px;
+  margin: 15px;
 }
 
 .tabs-container {
