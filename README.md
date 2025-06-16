@@ -39,8 +39,8 @@ This Dash-based framework is designed to impute, analyze and forecast building e
 - https://www.kaggle.com/datasets/uciml/electric-power-consumption-data-set/data
 - https://www.kaggle.com/datasets/claytonmiller/buildingdatagenomeproject2/code?datasetId=787828&searchQuery=time+series
 
-## Getting Started
-### 0.1 Install Necessary Python Libraries
+# Getting Started
+## 0.1 Install Necessary Python Libraries
     - CodeCarbon
     - Dash
     - Jupyter Notebook
@@ -50,11 +50,11 @@ This Dash-based framework is designed to impute, analyze and forecast building e
     - Pandas
     - Scikit-Learn
 
-### 1. Clone the repository
+## 1. Clone the repository
 git clone git@github.com:milouuu3/Building-Energy-Consumption-Time-Series.git
 
-### 2. Navigate to this folder
+## 2. Navigate to this folder
 cd Building-Energy-Consumption-Time-Series
 
-### 3. Run the bash file
+## 3. Run the bash file
 ./run.sh
