@@ -53,13 +53,13 @@ This Dash-based framework is designed to impute, analyze and forecast building e
     - Scikit-Learn
 
 ## 1. Clone the repository
-git clone git@github.com:milouuu3/Building-Energy-Consumption-Time-Series.git
+`git clone git@github.com:milouuu3/Building-Energy-Consumption-Time-Series.git`
 
 ## 2. Navigate to this folder
-cd Building-Energy-Consumption-Time-Series
+`cd Building-Energy-Consumption-Time-Series`
 
 ## 3.1 Run the 'setup' bash file to install all dependencies
-./setup.sh
+Type `./setup.sh` in your terminal
 
 ## 3.2 Run the 'run' bash file to start the application
-./run.sh
+Type `./run.sh` in your terminal

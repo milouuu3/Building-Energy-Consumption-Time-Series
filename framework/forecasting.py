@@ -6,7 +6,7 @@ from sklearn.linear_model import LinearRegression
 
 def create_lags(df, col, n_lags=7):
     df_lags = df.copy()
-    for i in range(1, n_lags + 1):
+    for i in range(1, int(n_lags) + 1):
         df_lags[f"Lag_{i}"] = df[col].shift(i)
     return df_lags
 
