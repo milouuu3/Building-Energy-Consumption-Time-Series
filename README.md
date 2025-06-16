@@ -1,5 +1,5 @@
 # Building-Energy-Consumption-Time-Series
-This repository contains the experiment notebooks and framework for the thesis.
+This repository contains the experiment notebooks and framework for my bachelor thesis about Imputation on Building Energy Time Series Time Series data.
 
 # Framework
 This Dash-based framework is designed to impute, analyze and forecast building energy consumption time series data.
@@ -22,9 +22,39 @@ This Dash-based framework is designed to impute, analyze and forecast building e
 - Sustainability
     - Track the runtime, energy usage and CO2 emissions of each imputation method
 - Forecasting
-    - Predict future building energy consumption with either LightGBM or Linear Regression
+    - Predict future building energy consumption with either a LightGBM or Linear Regression model
+
+# Experiments
+- Masked by MCAR (20%)
+## Imputation Techniques
+    - Last Observation Carried Forward (LOCF)
+    - Next Observation Carried Backwards (NOCB)
+    - Linear Interpolation
+    - Multiple Imputation by Chained Equation (MICE)
+    - Linear Regression
+    - K-Nearest Neighbor (KNN)
+    - LightGBM
+## Datasets
+- https://www.kaggle.com/datasets/mexwell/household-load-and-solar-generation
+- https://www.kaggle.com/datasets/uciml/electric-power-consumption-data-set/data
+- https://www.kaggle.com/datasets/claytonmiller/buildingdatagenomeproject2/code?datasetId=787828&searchQuery=time+series
 
 ## Getting Started
+### 0.1 Install Necessary Python Libraries
+    - CodeCarbon
+    - Dash
+    - Jupyter Notebook
+    - LightGBM
+    - Matplotlib
+    - Numpy
+    - Pandas
+    - Scikit-Learn
+
 ### 1. Clone the repository
 git clone git@github.com:milouuu3/Building-Energy-Consumption-Time-Series.git
+
+### 2. Navigate to this folder
 cd Building-Energy-Consumption-Time-Series
+
+### 3. Run the bash file
+./run.sh
