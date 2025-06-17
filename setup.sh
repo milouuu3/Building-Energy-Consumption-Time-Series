@@ -15,6 +15,6 @@ echo "Activating virtual environment..."
 source "./$n/bin/activate"
 
 echo "Installing necessary Python libraries..."
-pip install codecarbon dash notebook lightgbm matplotlib numpy pandas scikit-learn
+pip install codecarbon dash notebook lightgbm matplotlib numpy pandas scikit-learn eco2ai
 
 echo "Setup done. To run the application type './run.sh'"
