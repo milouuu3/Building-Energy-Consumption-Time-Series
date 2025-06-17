@@ -1,5 +1,5 @@
 # Building-Energy-Consumption-Time-Series
-This repository contains the experiment notebooks and framework for my bachelor thesis about Imputation on Building Energy Time Series Time Series data.
+This repository contains the experiment notebooks and custom built-in framework for my bachelor thesis about imputation on building energy time series data.
 
 # Experiments
 - Masked by MCAR (20%)
@@ -33,7 +33,7 @@ This Dash-based framework is designed to impute, analyze and forecast building e
     - LightGBM
 - Evaluation
     - Different Masking Techniques
-        - MCAR (Random)
+        - Missing completely at random (MCAR)
         - Time Gap masking (Continuous Block)
         - Fixed Interval masking (Regular Intervals)
     - Error metrics available
@@ -46,10 +46,10 @@ This Dash-based framework is designed to impute, analyze and forecast building e
 - Sustainability
     - Track the runtime, energy usage and CO2 emissions of each imputation method
 - Forecasting
-    - Predict future building energy consumption with either a LightGBM or Linear Regression model
+    - Predict future building energy consumption with either a LightGBM or linear regression model
 
 # Getting Started
-## 0.1 Overview of necessary Python libraries
+## 0.1. Overview of necessary Python libraries
     - CodeCarbon
     - Dash
     - Jupyter Notebook
@@ -59,22 +59,25 @@ This Dash-based framework is designed to impute, analyze and forecast building e
     - Pandas
     - Scikit-Learn
 
-## 0.2 Open your terminal
+## 0.2. Open your terminal
 Open your terminal:
 - **Linux** (recommended): `Ctrl+Alt+T`
 - **macOS**: `Cmd + Space`, then type `terminal`, and press `Enter`
 
-## 1 Clone the repository
+## 1. Clone the repository
 `git clone git@github.com:milouuu3/Building-Energy-Consumption-Time-Series.git`
 
-## 2 Navigate to this folder
+## 2. Navigate to this folder
 `cd Building-Energy-Consumption-Time-Series`
 
-## 3.1 Run the 'setup' bash file to install all dependencies
+## 3.1. Run the 'setup' bash file to install all dependencies
 Type `./setup.sh` in your terminal
 
-## 3.2 Run the 'run' bash file to start the application
+## 3.2. Run the 'run' bash file to start the application
 Type `./run.sh` in your terminal
 
-## 4 To quit the application
+## 4. Go to this webpage
+By default, the app runs at: [`http://127.0.0.1:8050/`](http://127.0.0.1:8050/) (check your terminal for the exact address)
+
+## 5 To. quit the application
 Hold `Ctrl + C`
