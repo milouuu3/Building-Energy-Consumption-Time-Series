@@ -6,9 +6,9 @@ set -e
 
 if [ ! -d "$n" ]; then
   echo "Virtual environment not found..."
+  python3 -m venv "$n"
 else
   echo "Creating virtual environment..."
-  python3 -m venv "$n"
 fi
 
 echo "Activating virtual environment..."
