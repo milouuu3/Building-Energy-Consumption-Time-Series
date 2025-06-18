@@ -1,4 +1,3 @@
 *.csv
 *.txt
-datasets/plots/
 __pycache__
