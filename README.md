@@ -80,4 +80,4 @@ Type `./run.sh` in your terminal
 By default, the app runs at: [`http://127.0.0.1:8050/`](http://127.0.0.1:8050/) (check your terminal for the exact address)
 
 ## 5 To. quit the application
-Hold `Ctrl + C`
+Press `Ctrl + C`
