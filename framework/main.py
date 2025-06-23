@@ -417,7 +417,7 @@ def run_imputation(n_clicks, data, masking, missing):
         df = pd.read_json(io.StringIO(data), orient="split")
 
         # Apply chosen masking method
-        df_masked, samples = mask_data(df.copy(), masking, missing / 100)
+        df_masked, samples = mask_data(df.copy(), masking, int(missing / 100))
 
         plot_error = evaluate(df, df_masked, samples)
         figs = create_plot_error(plot_error)
